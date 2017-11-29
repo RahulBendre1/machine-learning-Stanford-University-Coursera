@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.DoubleStream;
 
+//First weekly assignments
+
 public class GradientDescentLinearRegressionOneVariable {
 
     private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\gradientdescentandnormalequation\\data1.txt";
