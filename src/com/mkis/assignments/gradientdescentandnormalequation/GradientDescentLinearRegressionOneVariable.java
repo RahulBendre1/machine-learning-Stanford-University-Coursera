@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.DoubleStream;
 
-//First weekly assignments
+//First weekly assignments part 1
 
 public class GradientDescentLinearRegressionOneVariable {
 
