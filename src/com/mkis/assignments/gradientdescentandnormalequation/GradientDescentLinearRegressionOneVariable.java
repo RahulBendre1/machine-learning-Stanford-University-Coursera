@@ -1,9 +1,12 @@
 package com.mkis.assignments.gradientdescentandnormalequation;
 
 import org.apache.commons.math3.linear.*;
+import org.jfree.chart.renderer.category.ScatterRenderer;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.DoubleStream;
@@ -25,9 +28,9 @@ public class GradientDescentLinearRegressionOneVariable {
     private static int iterationsVar = 1;
     private static int iterations = 1500; // number of iterations for gradient descent
 
-    private static RealMatrix X; // matrix X
-    private static RealVector y; // vector y
-    private static RealVector theta; //vector theta
+    private static RealMatrix X; // matrix X (Population of City in 10,000s)
+    private static RealVector y; // vector y (Profit in $10,000s)
+    private static RealVector theta; //vector theta (parameters)
 
     public static void main(String[] args) {
         loadData();
@@ -36,6 +39,10 @@ public class GradientDescentLinearRegressionOneVariable {
         createTheta();
         createCostFunction();
         doGradientDescent();
+
+        NumberFormat nf = new DecimalFormat("##.##");
+        System.out.println("The value (profit) prediction in $s for city (population) size: 35,000:");
+        System.out.println(nf.format((theta.getEntry(0) + theta.getEntry(1)*3.5)*10000));
     }
 
     //load the data from the txt file into an array
@@ -59,13 +66,6 @@ public class GradientDescentLinearRegressionOneVariable {
             m = allLinesList.size();
             bufferedReader.close();
             reader.close();
-            /*System.out.println("Data: ");
-            for (int k = 0; k < dataRow; k++) {
-                for (int j = 0; j < dataCols; j++) {
-                    System.out.print(data[k][j] + "\t");
-                }
-                System.out.println();
-            }*/
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
