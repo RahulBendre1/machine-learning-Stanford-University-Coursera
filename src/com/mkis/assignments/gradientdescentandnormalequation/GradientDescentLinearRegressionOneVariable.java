@@ -1,14 +1,18 @@
 package com.mkis.assignments.gradientdescentandnormalequation;
 
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.Scene;
-import javafx.scene.chart.*;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
 import org.apache.commons.math3.linear.*;
-import org.jfree.data.xy.DefaultXYDataset;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.ApplicationFrame;
+import org.jfree.ui.RefineryUtilities;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,7 +24,7 @@ import java.util.stream.DoubleStream;
 
 //First weekly assignments part 1
 
-public class GradientDescentLinearRegressionOneVariable extends Application{
+public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame {
 
     private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\gradientdescentandnormalequation\\data1.txt";
     private static double[][] data; // data array
@@ -41,29 +45,72 @@ public class GradientDescentLinearRegressionOneVariable extends Application{
 
     private static List<Double> xAxisValues = new ArrayList<>();
     private static List<Double> yAxisValues = new ArrayList<>();
-    private static ObservableList<Double> xValuesObsList = FXCollections.observableArrayList();
-    private static ObservableList<Double> yValuesObsList = FXCollections.observableArrayList();
 
-    public void start(Stage main) throws Exception{
+    public GradientDescentLinearRegressionOneVariable(final String title) {
 
-        main.setTitle("Visualization of data");
-        main.setResizable(false);
+        super(title);
 
-        NumberAxis xAxis = new NumberAxis(4, 24, 1);
-        NumberAxis yAxis = new NumberAxis(-5, 25, 1);
-        xAxis.setLabel("Population of City in 10,000s");
-        yAxis.setLabel("Profit in $10,000s");
+        // Create a single plot containing both the scatter and line
+        XYPlot plot = new XYPlot();
 
-        ScatterChart dataChart = new ScatterChart(xAxis, yAxis, getChartData());
+        //SETUP SCATTER graph
+        // Create the scatter data, renderer, and axis
+        XYSeries series = new XYSeries("Profits depending on city population");
+        for (int i = 0; i < xAxisValues.size(); i++) {
+            series.add(xAxisValues.get(i), yAxisValues.get(i));
+        }
+        XYDataset dataSet = getData(series);
+        XYItemRenderer rendererData = new XYLineAndShapeRenderer(false, true);   // Shapes only
+        ValueAxis xAxisData = new NumberAxis("Population of City in 10,000s");
+        ValueAxis yAxisData = new NumberAxis("Profit in $10,000s");
+        xAxisData.setLowerBound(4);
+        xAxisData.setUpperBound(25);
+        yAxisData.setLowerBound(-5);
+        yAxisData.setUpperBound(25);
 
-        StackPane layout = new StackPane();
-        layout.getChildren().addAll(dataChart);
-        Scene scene = new Scene(layout, 400, 400);
-        main.setScene(scene);
-        main.show();
+        // Set the scatter data, renderer, and axis into plot
+        plot.setDataset(0, dataSet);
+        plot.setRenderer(0, rendererData);
+        plot.setDomainAxis(0, xAxisData);
+        plot.setRangeAxis(0, yAxisData);
+
+        //SETUP LINE graph
+        // Create the line data, renderer, and axis
+        XYSeries lineSeries = new XYSeries("Regression function");
+        for (int i = 0; i < xAxisValues.size(); i++) {
+            lineSeries.add((double) i, -3.6302914394044015 + 1.1663623503355864 * i);
+        }
+        XYDataset lineDataSet = getLineData(lineSeries);
+        XYItemRenderer rendererLine = new XYLineAndShapeRenderer(true, false);   // Lines only
+        ValueAxis xAxisLine = new NumberAxis();
+        ValueAxis yAxisLine = new NumberAxis();
+        xAxisLine.setLowerBound(4);
+        xAxisLine.setUpperBound(25);
+        xAxisLine.setAxisLineVisible(false);
+        yAxisLine.setLowerBound(-5);
+        yAxisLine.setUpperBound(25);
+        yAxisLine.setAxisLineVisible(false);
+
+        // Set the line data, renderer, and axis into plot
+        plot.setDataset(1, lineDataSet);
+        plot.setRenderer(1, rendererLine);
+        plot.setDomainAxis(1, xAxisLine);
+        plot.setRangeAxis(1, yAxisLine);
+
+        // Map the line to the second xAxis and second yAxis
+        plot.mapDatasetToDomainAxis(1, 1);
+        plot.mapDatasetToRangeAxis(1, 1);
+
+        // Create the chart with the plot and a legend
+        JFreeChart chart = new JFreeChart("Data set - Linear Regression", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
+
+        final ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new java.awt.Dimension(800, 800));
+        setContentPane(chartPanel);
     }
 
     public static void main(String[] args) {
+
         loadData();
         createMatrixX();
         createVectorY();
@@ -73,31 +120,27 @@ public class GradientDescentLinearRegressionOneVariable extends Application{
 
         NumberFormat nf = new DecimalFormat("##.##");
         System.out.println("The value (profit) prediction in $s for city (population) size: 35,000:");
-        System.out.println(nf.format((theta.getEntry(0) + theta.getEntry(1)*3.5)*10000));
+        System.out.println(nf.format((theta.getEntry(0) + theta.getEntry(1) * 3.5) * 10000));
 
-        launch();
+        GradientDescentLinearRegressionOneVariable visualizationOfData = new GradientDescentLinearRegressionOneVariable("Visualization of data");
+        visualizationOfData.pack();
+        RefineryUtilities.centerFrameOnScreen(visualizationOfData);
+        visualizationOfData.setResizable(false);
+        visualizationOfData.setVisible(true);
     }
 
-    private ObservableList<XYChart.Series<Double, Double>> getChartData() {
-        ObservableList<XYChart.Series<Double, Double>> data = FXCollections.observableArrayList();
-        XYChart.Series <Double, Double > dataSeries = new XYChart.Series<>();
-        for (int i =0 ; i < xAxisValues.size(); i++) {
-            dataSeries.getData().add(new XYChart.Data<>(xAxisValues.get(i), yAxisValues.get(i)));
-        }
-        data.addAll(dataSeries);
-        return data;
+    //Get XYDataset data data for visualization
+    private XYDataset getData(XYSeries series) {
+        XYSeriesCollection xySeriesCollectionData = new XYSeriesCollection();
+        xySeriesCollectionData.addSeries(series);
+        return xySeriesCollectionData;
     }
 
-    private ObservableList<XYChart.Series<Double, Double>> getLineData() {
-        ObservableList<XYChart.Series<Double, Double>> data = FXCollections.observableArrayList();
-        XYChart.Series <Double, Double > lineSeries = new XYChart.Series<>();
-
-        for (int i =0 ; i < xAxisValues.size(); i++) {
-            lineSeries.getData().add(new XYChart.Data<>((double)i, -3.6302914394044015 + 1.1663623503355864*i));
-        }
-
-        data.addAll(lineSeries);
-        return data;
+    //Get XYDataset line data for visualization
+    private XYDataset getLineData(XYSeries lineSeries) {
+        XYSeriesCollection xySeriesCollectionLine = new XYSeriesCollection();
+        xySeriesCollectionLine.addSeries(lineSeries);
+        return xySeriesCollectionLine;
     }
 
     //load the data from the txt file into an array
@@ -121,8 +164,6 @@ public class GradientDescentLinearRegressionOneVariable extends Application{
 
                 i++;
             }
-            xValuesObsList.addAll(xAxisValues);
-            yValuesObsList.addAll(yAxisValues);
             m = allLinesList.size();
             bufferedReader.close();
             reader.close();
@@ -151,23 +192,23 @@ public class GradientDescentLinearRegressionOneVariable extends Application{
     }
 
     //initiate theta with [0;0]
-    private static void createTheta () {
-        theta = new ArrayRealVector(new double[] { 0, 0});
+    private static void createTheta() {
+        theta = new ArrayRealVector(new double[]{0, 0});
     }
 
-    private static void createCostFunction () {
+    private static void createCostFunction() {
         RealVector h = X.operate(theta);  // h = X*theta
         RealVector sqrErrors = h.subtract(y).ebeMultiply(h.subtract(y)); //qrErrors = (h-y).^2;
         double[] temp = sqrErrors.toArray();
         double sumOfsqrErrors = DoubleStream.of(temp).sum();
-        double J = (1/(2*m)) * sumOfsqrErrors;
+        double J = (1 / (2 * m)) * sumOfsqrErrors;
         System.out.println("Cost function value with theta [0;0] : " + J);
     }
 
-    private static boolean doGradientDescent () {
-        RealVector delta = ((X.transpose().multiply(X).operate(theta)).subtract(X.transpose().operate(y))).mapMultiply(1/m); // delta=1/m*(X'*X*theta-X'*y)
+    private static boolean doGradientDescent() {
+        RealVector delta = ((X.transpose().multiply(X).operate(theta)).subtract(X.transpose().operate(y))).mapMultiply(1 / m); // delta=1/m*(X'*X*theta-X'*y)
         theta = theta.subtract(delta.mapMultiply(alpha)); // theta=theta-alpha.*delta
-        if(iterationsVar==iterations) {
+        if (iterationsVar == iterations) {
             System.out.println("theta after 1500 iterations: " + theta);
             System.out.println("h = " + theta.getEntry(0) + " + " + theta.getEntry(1) + "x");
             return true;
