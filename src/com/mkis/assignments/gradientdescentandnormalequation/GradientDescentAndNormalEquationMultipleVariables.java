@@ -68,9 +68,7 @@ public class GradientDescentAndNormalEquationMultipleVariables {
             data = new double[dataRow][dataCols];
             String[] lines;
             int i = 0;
-            List<String> allLinesList = new ArrayList<>(); //To get the number of rows
             while ((line = bufferedReader.readLine()) != null) {
-                allLinesList.add(line); //To get the number of rows
                 lines = line.split(",");
                 n = lines.length;
                 data[i][0] = Double.parseDouble(lines[0]);
@@ -80,7 +78,7 @@ public class GradientDescentAndNormalEquationMultipleVariables {
                 data[i][2] = Double.parseDouble(lines[2]);
                 i++;
             }
-            m = allLinesList.size();
+            m = listVar1.size();
             bufferedReader.close();
             reader.close();
         } catch (Exception e) {

@@ -152,9 +152,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
             data = new double[dataRow][dataCols];
             String[] lines;
             int i = 0;
-            List<String> allLinesList = new ArrayList<>(); //To get the number of rows
             while ((line = bufferedReader.readLine()) != null) {
-                allLinesList.add(line); //To get the number of rows
                 lines = line.split(",");
                 n = lines.length;
                 data[i][0] = Double.parseDouble(lines[0]);
@@ -164,7 +162,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
 
                 i++;
             }
-            m = allLinesList.size();
+            m = xAxisValues.size();
             bufferedReader.close();
             reader.close();
         } catch (Exception e) {
