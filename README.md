@@ -7,4 +7,3 @@ l:
 Linear Regression with gradient descent with 1 variable
 Linear Regression with gradient descent with multiple variables
 
-2:
