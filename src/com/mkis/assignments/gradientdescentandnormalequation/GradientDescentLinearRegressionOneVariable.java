@@ -1,6 +1,5 @@
 package com.mkis.assignments.gradientdescentandnormalequation;
 
-import org.apache.commons.math3.linear.*;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -19,34 +18,22 @@ import java.io.FileReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.DoubleStream;
 
-//First weekly assignments part 1
+//First weekly assignments part 1 Linear Regression with gradient descent (non vectorized solution)
 
 public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame {
 
     private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\gradientdescentandnormalequation\\data1.txt";
-    private static double[][] data; // data array
-    private static double[][] variablesWithOneArray;  //variable array with ones added to the first row (X matrix)
-    private static double[] valuesArray;  // values array (y vector)
-    private static int dataRow = 97; //number of rows in data set (m)
-    private static int dataCols = 2; // number of columns in data set (n)
     private static double m; // number of training examples
-    private static int n; // number of features
-
+    private static int n; // number of features + 1
     private static double alpha = 0.01; // learning rate
-    private static int iterationsVar = 1;
-    private static int iterations = 1500; // number of iterations for gradient descent
+    private static int iterations = 0; // number of iterations for gradient descent
+    private static double theta[]; // parameters/weights array
+    private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
 
-    private static RealMatrix X; // matrix X (Population of City in 10,000s)
-    private static RealVector y; // vector y (Profit in $10,000s)
-    private static RealVector theta; //vector theta (parameters)
-
-    private static List<Double> xAxisValues = new ArrayList<>();
-    private static List<Double> yAxisValues = new ArrayList<>();
-
-    public GradientDescentLinearRegressionOneVariable(final String title) {
+    private GradientDescentLinearRegressionOneVariable(final String title) {
 
         super(title);
 
@@ -56,10 +43,10 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
         //SETUP SCATTER graph
         // Create the scatter data, renderer, and axis
         XYSeries series = new XYSeries("Profits depending on city population");
-        for (int i = 0; i < xAxisValues.size(); i++) {
-            series.add(xAxisValues.get(i), yAxisValues.get(i));
+        for (int i = 0; i < dataSet.size(); i++) {
+            series.add(dataSet.get(i).xVariables[1], dataSet.get(i).yValue);
         }
-        XYDataset dataSet = getData(series);
+        XYDataset dataSetVis = getData(series);
         XYItemRenderer rendererData = new XYLineAndShapeRenderer(false, true);   // Shapes only
         ValueAxis xAxisData = new NumberAxis("Population of City in 10,000s");
         ValueAxis yAxisData = new NumberAxis("Profit in $10,000s");
@@ -69,7 +56,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
         yAxisData.setUpperBound(25);
 
         // Set the scatter data, renderer, and axis into plot
-        plot.setDataset(0, dataSet);
+        plot.setDataset(0, dataSetVis);
         plot.setRenderer(0, rendererData);
         plot.setDomainAxis(0, xAxisData);
         plot.setRangeAxis(0, yAxisData);
@@ -77,8 +64,8 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
         //SETUP LINE graph
         // Create the line data, renderer, and axis
         XYSeries lineSeries = new XYSeries("Regression function");
-        for (int i = 0; i < xAxisValues.size(); i++) {
-            lineSeries.add((double) i, -3.6302914394044015 + 1.1663623503355864 * i);
+        for (int i = 0; i < dataSet.size(); i++) {
+            lineSeries.add((double) i, theta[0] + theta[1] * i);
         }
         XYDataset lineDataSet = getLineData(lineSeries);
         XYItemRenderer rendererLine = new XYLineAndShapeRenderer(true, false);   // Lines only
@@ -112,21 +99,30 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
     public static void main(String[] args) {
 
         loadData();
-        createMatrixX();
-        createVectorY();
-        createTheta();
-        createCostFunction();
-        doGradientDescent();
+        initTheta();
+        createCostFunction(dataSet);
+        doGradientDescent(dataSet);
 
         NumberFormat nf = new DecimalFormat("##.##");
         System.out.println("The value (profit) prediction in $s for city (population) size: 35,000:");
-        System.out.println(nf.format((theta.getEntry(0) + theta.getEntry(1) * 3.5) * 10000));
+        System.out.println(nf.format((theta[0] + theta[1] * 3.5) * 10000));
 
-        GradientDescentLinearRegressionOneVariable visualizationOfData = new GradientDescentLinearRegressionOneVariable("Visualization of data");
+        GradientDescentLinearRegressionOneVariable visualizationOfData =
+                new GradientDescentLinearRegressionOneVariable("Visualization of data");
         visualizationOfData.pack();
         RefineryUtilities.centerFrameOnScreen(visualizationOfData);
         visualizationOfData.setResizable(false);
         visualizationOfData.setVisible(true);
+    }
+
+    public static class Instance {
+        double yValue;
+        double[] xVariables;
+
+        Instance(double yValue, double[] xVariables) {
+            this.yValue = yValue;
+            this.xVariables = xVariables;
+        }
     }
 
     //Get XYDataset data data for visualization
@@ -149,20 +145,20 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
             FileReader reader = new FileReader(file);
             BufferedReader bufferedReader = new BufferedReader(reader);
             String line;
-            data = new double[dataRow][dataCols];
-            String[] lines;
-            int i = 0;
+            String[] columns;
             while ((line = bufferedReader.readLine()) != null) {
-                lines = line.split(",");
-                n = lines.length;
-                data[i][0] = Double.parseDouble(lines[0]);
-                data[i][1] = Double.parseDouble(lines[1]);
-                xAxisValues.add(Double.parseDouble(lines[0]));
-                yAxisValues.add(Double.parseDouble(lines[1]));
-
-                i++;
+                columns = line.split(",");
+                n = columns.length;
+                double y = Double.parseDouble(columns[n - 1]);
+                double xArray[] = new double[columns.length];
+                xArray[0] = 1.0;
+                for (int i = 0; i < columns.length - 1; i++) {
+                    xArray[i + 1] = Double.parseDouble(columns[i]);
+                }
+                Instance instance = new Instance(y, xArray);
+                dataSet.add(instance);
             }
-            m = xAxisValues.size();
+            m = dataSet.size();
             bufferedReader.close();
             reader.close();
         } catch (Exception e) {
@@ -170,50 +166,54 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
         }
     }
 
-    //create matrix X (variables with ones added to the first column)
-    private static void createMatrixX() {
-        variablesWithOneArray = new double[97][2];
-        for (int i = 0; i < dataRow; i++) {
-            variablesWithOneArray[i][0] = 1;
-            variablesWithOneArray[i][1] = data[i][0];
+    //initiate theta
+    private static void initTheta() {
+        theta = new double[n];
+        for (int i = 0; i < n; i++) {
+            theta[i] = 0.0;
         }
-        X = new Array2DRowRealMatrix(variablesWithOneArray);
     }
 
-    //create vector y (values)
-    private static void createVectorY() {
-        valuesArray = new double[97];
-        for (int i = 0; i < dataRow; i++) {
-            valuesArray[i] = data[i][1];
+    private static double createHypothesis(double[] x) {
+        double hypothesis = 0.0;
+        for (int i = 0; i < theta.length; i++) {
+            hypothesis += theta[i] * x[i];
         }
-        y = new ArrayRealVector(valuesArray);
+        return hypothesis;
     }
 
-    //initiate theta with [0;0]
-    private static void createTheta() {
-        theta = new ArrayRealVector(new double[]{0, 0});
-    }
-
-    private static void createCostFunction() {
-        RealVector h = X.operate(theta);  // h = X*theta
-        RealVector sqrErrors = h.subtract(y).ebeMultiply(h.subtract(y)); //qrErrors = (h-y).^2;
-        double[] temp = sqrErrors.toArray();
-        double sumOfsqrErrors = DoubleStream.of(temp).sum();
+    //Create Cost function
+    private static double createCostFunction(List<Instance> instances) {
+        double sumOfsqrErrors = 0.0;
+        for (Instance instance : instances) {
+            double[] x = instance.xVariables;
+            double hypothesis = createHypothesis(x);
+            double y = instance.yValue;
+            sumOfsqrErrors += Math.pow((hypothesis - y), 2);
+        }
         double J = (1 / (2 * m)) * sumOfsqrErrors;
-        System.out.println("Cost function value with theta [0;0] : " + J);
+        //System.out.println("Cost function value with theta(" + Arrays.toString(theta) + "): " + J);
+        return J;
     }
 
-    private static boolean doGradientDescent() {
-        RealVector delta = ((X.transpose().multiply(X).operate(theta)).subtract(X.transpose().operate(y))).mapMultiply(1 / m); // delta=1/m*(X'*X*theta-X'*y)
-        theta = theta.subtract(delta.mapMultiply(alpha)); // theta=theta-alpha.*delta
-        if (iterationsVar == iterations) {
-            System.out.println("theta after 1500 iterations: " + theta);
-            System.out.println("h = " + theta.getEntry(0) + " + " + theta.getEntry(1) + "x");
-            return true;
+    private static boolean doGradientDescent(List<Instance> instances) {
+        double temp0 = 0.0;
+        double temp1 = 0.0;
+        double costFunctionOld = createCostFunction(dataSet);
+        for (Instance instance : instances) {
+            double[] x = instance.xVariables;
+            double hypothesis = createHypothesis(x);
+            double y = instance.yValue;
+            temp0 += (hypothesis - y) * x[0];
+            temp1 += (hypothesis - y) * x[1];
         }
-        iterationsVar++;
-        return doGradientDescent();
+        theta[0] = theta[0] - (alpha / m) * temp0;
+        theta[1] = theta[1] - (alpha / m) * temp1;
+        iterations++;
+         /*Cost function to descend, theta after each iteration:
+        System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta));
+        createCostFunction(dataSet);*/
+        return (costFunctionOld - createCostFunction(dataSet)) < 0.0000001 || doGradientDescent(dataSet);
     }
 
 }
-
