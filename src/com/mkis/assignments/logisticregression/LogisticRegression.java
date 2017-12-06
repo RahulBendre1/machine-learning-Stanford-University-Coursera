@@ -10,9 +10,9 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -33,15 +33,12 @@ With linear decision boundary.
 
 Initialize thetas so gradient descent will not get stuck in a local optima!*/
 
-public class LogisticRegression extends JFrame {
+public class LogisticRegression extends ApplicationFrame {
 
     private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\logisticregression\\data1.txt";
     private static double m; // number of training examples
     private static int n; // number of features
-
-    private static double alpha = 0.0001; // learning rate
     private static int iterations = 0;// number of iterations needed for gradient descent
-
     private static double theta[]; // parameters/weights array
     private static double grad[] = new double[3]; // gradients array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
@@ -268,16 +265,22 @@ public class LogisticRegression extends JFrame {
     //Do gradient descent
     private static void doGradientDescent(List<Instance> instances) {
         for (int k = 0; k < 5000; k++) {
+            double[] temp = new double[n];
+            for (int i = 0; i < n; i++) {
+                temp[i] = 0.0;
+            }
             double costFunctionOld = createCostFunction(dataSet);
             for (Instance instance : instances) {
                 double[] x = instance.xVariables;
                 double hypothesis = createHypothesis(x);
                 double y = instance.yValue;
-                //double error = y-hypothesis;
-                theta[0] = theta[0] + alpha * (y - hypothesis) /** hypothesis * (1 - hypothesis)*/;
-                for (int i = 1; i < n; i++) {
-                    theta[i] = theta[i] + alpha * (y - hypothesis) /** hypothesis * (1 - hypothesis)*/ * x[i];
+                for (int i = 0; i < n; i++) {
+                    temp[i] = temp[i] + (hypothesis-y)*x[i];
                 }
+            }
+            double alpha = 0.00001;
+            for (int i = 0; i < n; i++) {
+                theta[i] = theta[i] - alpha * temp[i];
             }
             iterations++;
             //Cost function to descend, theta after each iteration:

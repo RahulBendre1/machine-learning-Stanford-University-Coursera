@@ -179,19 +179,23 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
 
     private static void doGradientDescent(List<Instance> instances) {
         for (int k = 0; k < 1500; k++) {
-            double temp0 = 0.0;
-            double temp1 = 0.0;
+            double[] temp = new double[n];
+            for (int i = 0; i < n; i++) {
+                temp[i] = 0.0;
+            }
             double costFunctionOld = createCostFunction(dataSet);
             for (Instance instance : instances) {
                 double[] x = instance.xVariables;
                 double hypothesis = createHypothesis(x);
                 double y = instance.yValue;
-                temp0 += (hypothesis - y) * x[0];
-                temp1 += (hypothesis - y) * x[1];
+                for (int i = 0; i < n; i++) {
+                    temp[i] = temp[i] + (hypothesis-y)*x[i];
+                }
             }
             double alpha = 0.01;
-            theta[0] = theta[0] - (alpha / m) * temp0;
-            theta[1] = theta[1] - (alpha / m) * temp1;
+            for (int i = 0; i < n; i++) {
+                theta[i] = theta[i] - (alpha / m ) * temp[i];
+            }
             iterations++;
             //Cost function to descend, theta after each iteration:
             //System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta));
