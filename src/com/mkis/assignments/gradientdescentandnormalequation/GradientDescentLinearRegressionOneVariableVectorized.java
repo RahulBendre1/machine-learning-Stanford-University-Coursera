@@ -145,7 +145,7 @@ public class GradientDescentLinearRegressionOneVariableVectorized extends Applic
     //create matrix X (variables with ones added to the first column)
     private static void createMatrixX() {
         double[][] variablesWithOneArray = new double[m][n];
-        for (int i = 1; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             variablesWithOneArray[i][0] = 1;
             for (int j = 1; j < n; j++) {
                 variablesWithOneArray[i][j] = data[i][j - 1];
@@ -166,11 +166,8 @@ public class GradientDescentLinearRegressionOneVariableVectorized extends Applic
     //initiate theta
     private static void initTheta() {
         double[] thetaArray = new double[n];
-       /* thetaArray[0] = -20;
-        thetaArray[1] = 5;
-        thetaArray[2] = 1;*/
         for (int i = 0; i < n; i++) {
-            thetaArray[i] = 0.0;
+            thetaArray[i] = 0;
         }
         theta = new ArrayRealVector(thetaArray);
     }
@@ -185,15 +182,17 @@ public class GradientDescentLinearRegressionOneVariableVectorized extends Applic
     }
 
     private static void doGradientDescent() {
+        int i = 0;
         for (int k = 0; k < 1500; k++) {
             // delta=1/m*(X'*X*theta-X'*y)
             RealVector delta = ((X.transpose().multiply(X).operate(theta)).subtract(X.transpose().operate(y))).mapMultiply(1 / (double) m);
             double alpha = 0.01;
             theta = theta.subtract(delta.mapMultiply(alpha)); // theta=theta-alpha.*delta
+            i++;
         }
-        System.out.println("theta after 1500 iterations: " + theta);
+        System.out.println("theta after 1500 iterations (" + i + "):" + theta);
         System.out.println("h = " + theta.getEntry(0) + " + " + theta.getEntry(1) + "x");
-        createCostFunction();
+        //createCostFunction();
     }
 
 }

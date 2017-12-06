@@ -50,7 +50,7 @@ public class GradientDescentAndNormalEquationMultipleVariables {
         System.out.println("Predicted price of a 1650 sq-ft, 3 br house in $s:");
         System.out.println(nf.format(theta.getEntry(0) + theta.getEntry(1) * ((1650 - muVar1) / sigmaVar1)
                 + theta.getEntry(2) * ((3 - muVar2) / sigmaVar2))); // Gradient descent
-        //System.out.println(theta.getEntry(0) + theta.getEntry(1)*1650 + theta.getEntry(2)*3); // Normal Equation
+        //System.out.println(theta.getEntry(0) + theta.getEntry(1) * ((1650 - muVar1) / sigmaVar1) + theta.getEntry(2) * ((3 - muVar2) / sigmaVar2)); // Normal Equation
     }
 
     private static void getNumberOfFeaturesAndTrainingExamples() {
@@ -152,7 +152,7 @@ public class GradientDescentAndNormalEquationMultipleVariables {
     }
 
     private static void doGradientDescent() {
-        for (int k = 0; k < 400; k++) {
+        for (int k = 0; k < 1000; k++) {
             RealVector delta = ((X.transpose().multiply(X).operate(theta)).subtract(X.transpose().operate(y))).mapMultiply(1 / (double) m); // delta=1/m*(X'*X*theta-X'*y)
             double alpha = 0.1;  //alpha value to play with
             theta = theta.subtract(delta.mapMultiply(alpha)); // theta=theta-alpha.*delta

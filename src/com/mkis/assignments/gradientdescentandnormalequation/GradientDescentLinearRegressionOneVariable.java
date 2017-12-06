@@ -39,7 +39,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
         getNumberOfFeaturesAndTrainingExamples();
         loadData();
         initTheta();
-        createCostFunction(dataSet);
+        System.out.println("Cost function value at start: " + createCostFunction(dataSet));
         doGradientDescent(dataSet);
 
         NumberFormat nf = new DecimalFormat("##.##");
@@ -178,7 +178,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
     }
 
     private static void doGradientDescent(List<Instance> instances) {
-        for (int k = 0; k < 5000; k++) {
+        for (int k = 0; k < 1500; k++) {
             double temp0 = 0.0;
             double temp1 = 0.0;
             double costFunctionOld = createCostFunction(dataSet);
@@ -202,6 +202,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
             }
         }
         System.out.println("Number of iterations: " + iterations);
+        System.out.println("Cost function value at the end: " + createCostFunction(dataSet));
     }
 
 }
