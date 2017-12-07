@@ -41,7 +41,6 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
     private static int iterations = 0;// number of iterations needed for gradient descent
 
     private static double theta[]; // parameters/weights array
-    private static double grad[]; // gradients array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
     private static List<Instance> dataSetFeatureMapping = new ArrayList<>(); //list containing 1 row of training example with feature mapping
 
@@ -53,7 +52,7 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
         doFeatureMapping(dataSet);
         initTheta();
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSetFeatureMapping));
-        //createGradients(dataSetFeatureMapping);
+        createGradients(dataSetFeatureMapping);
         doGradientDescent(dataSetFeatureMapping);
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSetFeatureMapping));
         System.out.println("\nAccuracy of the model: " + nf.format(calcAccuracyOfModel(dataSetFeatureMapping)) + " %");
@@ -271,26 +270,15 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
             xArray[3] = Math.pow(instance.xVariables[1] , 2);
             xArray[4] = Math.pow(instance.xVariables[2] , 2);
             double y = instance.yValue;
-            /*int degree = 6;
-            for (int i = 2; i < degree; i++) {
-                for (int j = 0; j < i; j++) {
-                    xArray[i + 1] = Math.pow(x[1], i - j) * Math.pow(x[2], j);
-                    *//*Equation:
-                     solve for x2 - > 1 + x1 + x2 + x1^2 + x1*x2 + x1^3 + x1^2*x2 + x1*x2^2 + x1^4 + x1^3*x2 + x1^2*x2^2 + x1*x2^3 +
-                    x1^5 + x1^4*x2 + x1^3*x2^2 + x1^2*x2^3 + x1*x2^4 + x1^6 + x1^5*x2 + x1^4*x2^2 + x1^3*x2^3 + x1^2*x2^4 + x1*x2^5
-                    *//*
-                }
-            }*/
             Instance instanceFeatureMapping = new Instance(y, xArray);
             dataSetFeatureMapping.add(instanceFeatureMapping);
         }
-        //System.out.println(dataSetFeatureMapping.get(0).xVariables.length)
     }
 
     //Create gradients
     private static void createGradients(List<Instance> instances) {
+        double[] grad = new double[instances.get(0).xVariables.length];
         double sum[] = new double[instances.get(0).xVariables.length];
-        grad = new double[instances.get(0).xVariables.length];
         for(int i = 0; i < instances.get(0).xVariables.length; i++) {
             sum[i] = 0.0;
         }
@@ -308,7 +296,7 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
         System.out.println("Gradients with theta " + Arrays.toString(theta) + " : " + Arrays.toString(grad) + "");
     }
 
-    //Do gradient descent regularization
+    //Do gradient descent (regularized)
     private static void doGradientDescent(List<Instance> instances) {
         for (int k = 0; k < 5000; k++) {
             double[] temp = new double[instances.get(0).xVariables.length];
@@ -327,14 +315,13 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
             double alpha = 0.01;
             theta[0] = theta[0] - alpha * temp[0];
             for (int i = 1; i < instances.get(0).xVariables.length; i++) {
-                //theta[i] = theta[i]*(1 - alpha *(lambda / m)) - (alpha /m)* temp[i];
                 theta[i] = theta[i]  -  alpha * (temp[i] + (lambda/m)*theta[i]);
             }
             iterations++;
             //Cost function to descend, theta after each iteration:
             //System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta));
             //System.out.println(createCostFunction(dataSetFeatureMapping));
-            if (costFunctionOld - createCostFunction(dataSetFeatureMapping) < 0.00001) {
+            if (costFunctionOld - createCostFunction(dataSetFeatureMapping) < 0.001) {
                 System.out.println("Number of iterations: " + iterations);
                 return;
             }
