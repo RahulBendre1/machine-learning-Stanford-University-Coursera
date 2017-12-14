@@ -40,7 +40,6 @@ public class LogisticRegression extends ApplicationFrame {
     private static int n; // number of features
     private static int iterations = 0;// number of iterations needed for gradient descent
     private static double theta[]; // parameters/weights array
-    private static double grad[] = new double[3]; // gradients array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
 
     //For plotting
@@ -230,20 +229,22 @@ public class LogisticRegression extends ApplicationFrame {
 
     //Create gradients
     private static void createGradients(List<Instance> instances) {
-        double sum0 = 0.0;
-        double sum1 = 0.0;
-        double sum2 = 0.0;
+        double[] sum = new double[theta.length];
+        for(int i=0; i< theta.length; i++){
+            sum[i] = 0.0;
+        }
+        double[] grad = new double[theta.length];
         for (Instance instance : instances) {
             double[] x = instance.xVariables;
             double hypothesis = createHypothesis(x);
             double y = instance.yValue;
-            sum0 += hypothesis * x[0] - y * x[0];
-            sum1 += hypothesis * x[1] - y * x[1];
-            sum2 += hypothesis * x[2] - y * x[2];
+            for(int i=0; i< theta.length; i++){
+                sum[i] += hypothesis * x[i] - y*x[i];
+            }
         }
-        grad[0] = (1 / m) * sum0;
-        grad[1] = (1 / m) * sum1;
-        grad[2] = (1 / m) * sum2;
+        for(int i=0; i< theta.length; i++){
+            grad[i] = (1 / m) * sum[i];
+        }
         System.out.println("Gradients with theta " + Arrays.toString(theta) + " : " + Arrays.toString(grad) + "");
     }
 
