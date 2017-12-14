@@ -20,6 +20,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /*Suppose that you are the administrator of a university department and
@@ -40,6 +41,9 @@ public class LogisticRegression extends ApplicationFrame {
     private static int iterations = 0;// number of iterations needed for gradient descent
     private static double theta[]; // parameters/weights array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
+    private static List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
+    private static List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min of each feature
+
 
     //For plotting
     private LogisticRegression(final String title) {
@@ -53,7 +57,9 @@ public class LogisticRegression extends ApplicationFrame {
         // Create the scatter data, renderer, and axis
         XYSeries seriesEx1 = new XYSeries("Admitted");
         for (int i = 0; i < dataSet.size(); i++) {
-            if (dataSet.get(i).yValue == 1) seriesEx1.add(100*dataSet.get(i).xVariables[1], 100*dataSet.get(i).xVariables[2]); //100 <- feature scaling
+            if (dataSet.get(i).yValue == 1)
+                seriesEx1.add(dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
+                        dataSet.get(i).xVariables[2] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
         }
         XYDataset dataSetVisEx1 = getData(seriesEx1);
         XYItemRenderer rendererDataEx1 = new XYLineAndShapeRenderer(false, true);
@@ -71,7 +77,9 @@ public class LogisticRegression extends ApplicationFrame {
         // Create the scatter data, renderer, and axis
         XYSeries seriesEx2 = new XYSeries("Not admitted");
         for (int i = 0; i < dataSet.size(); i++) {
-            if (dataSet.get(i).yValue == 0) seriesEx2.add(100*dataSet.get(i).xVariables[1], 100*dataSet.get(i).xVariables[2]); //100 <- feature scaling
+            if (dataSet.get(i).yValue == 0)
+                seriesEx2.add(dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
+                        dataSet.get(i).xVariables[2] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
         }
         XYDataset dataSetVisEx2 = getData(seriesEx2);
         XYItemRenderer rendererDataEx2 = new XYLineAndShapeRenderer(false, true);
@@ -94,8 +102,9 @@ public class LogisticRegression extends ApplicationFrame {
         XYSeries lineSeries = new XYSeries("Decision boundary");
         double x = 25;
         while (x <= 105) {
-            lineSeries.add(x, ((theta[0] + theta[1] * (x/100)) / (-1 * theta[2]))*100); //100 <- feature scaling
-            x += 1;
+            lineSeries.add(x,
+                    ((theta[0] + theta[1] * ((x - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0))) / (-1 * theta[2])) * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
+            x += 0.05;
         }
         XYDataset lineDataSet = getLineData(lineSeries);
         XYItemRenderer rendererLine = new XYLineAndShapeRenderer(true, false);   // Lines only
@@ -122,6 +131,7 @@ public class LogisticRegression extends ApplicationFrame {
 
     public static void main(String[] args) {
 
+        getNumberOfFeaturesAndTrainingExamples();
         loadData();
         initTheta();
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSet));
@@ -132,8 +142,10 @@ public class LogisticRegression extends ApplicationFrame {
 
         NumberFormat nf = new DecimalFormat("##.##");
         System.out.println("For a student with scores 45 and 85, we predict an admission probability: ");
-        System.out.println(nf.format(100 * (createHypothesis(new double[]{1, 0.45, 0.85}))) + " %"); // /100 <- feature scaling
-        System.out.println(predict(new double[]{1, 0.45, 0.85}) == 1 ? "He will be admitted." : "He will not be admitted."); // /100 <- feature scaling
+        System.out.println(nf.format(100 * (createHypothesis(new double[]
+                {1, (45 - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0), (85 - meansOfFeatures.get(1)) / maxMinusMinOfFeatures.get(1)}))) + " %"); //feature scaling
+        System.out.println(predict(new double[]
+                {1, (45 - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0), (85 - meansOfFeatures.get(1)) / maxMinusMinOfFeatures.get(1)}) == 1 ? "He will be admitted." : "He will not be admitted."); //feature scaling
 
         LogisticRegression visualizationOfData = new LogisticRegression("Visualization of data");
         visualizationOfData.pack();
@@ -166,6 +178,40 @@ public class LogisticRegression extends ApplicationFrame {
         }
     }
 
+    private static void getNumberOfFeaturesAndTrainingExamples() {
+        try {
+            FileReader reader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(reader);
+            String line;
+            String[] columns;
+            List<List<Double>> tempList = new ArrayList<>();
+            m = 0;
+            while ((line = bufferedReader.readLine()) != null) {
+                columns = line.split(",");
+                n = columns.length;
+                if (m == 0) {
+                    for (int i = 0; i < n - 1; i++) {
+                        List<Double> tempInnerList = new ArrayList<>();  //create inner lists, number depends on the number of features
+                        tempList.add(i, tempInnerList);
+                    }
+                }
+                for (int i = 0; i < n - 1; i++) {
+                    tempList.get(i).add(Double.parseDouble(columns[i]));
+                }
+                m++;
+            }
+            //for mean normalization get means and (max-min)s of all all features
+            for (int i = 0; i < n - 1; i++) {
+                meansOfFeatures.add(i, tempList.get(i).stream().mapToDouble(val -> val).average().getAsDouble());
+                maxMinusMinOfFeatures.add(i, Collections.max(tempList.get(i)) - Collections.min(tempList.get(i)));
+            }
+            bufferedReader.close();
+            reader.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     //Load the data from the txt file into an array
     private static void loadData() {
         try {
@@ -175,18 +221,16 @@ public class LogisticRegression extends ApplicationFrame {
             String[] columns;
             while ((line = bufferedReader.readLine()) != null) {
                 columns = line.split(",");
-                n = columns.length;
                 double y = Double.parseDouble(columns[n - 1]);
-                double xArray[] = new double[columns.length];
+                double xArray[] = new double[n];
                 xArray[0] = 1.0;
-                for (int i = 0; i < columns.length - 1; i++) {
-                    xArray[i + 1] = Double.parseDouble(columns[i])/100; // /100 <- feature scaling, to get variables between 0 and 1
+                for (int i = 0; i < n - 1; i++) {
+                    xArray[i + 1] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i); // feature scaling applied, to get variables between 0 and 1
                 }
-                //System.out.println(xArray[0] +" | " +  xArray[1] + " | " +  xArray[2]);
+                //System.out.println(xArray[0] + " | " + xArray[1] + " | " + xArray[2]);
                 Instance instance = new Instance(y, xArray);
                 dataSet.add(instance);
             }
-            m = dataSet.size();
             bufferedReader.close();
             reader.close();
         } catch (Exception e) {
@@ -194,7 +238,7 @@ public class LogisticRegression extends ApplicationFrame {
         }
     }
 
-    //Initialize theta
+    //Initialize theta with zeros
     private static void initTheta() {
         theta = new double[n];
         for (int i = 0; i < n; i++) {
@@ -220,7 +264,7 @@ public class LogisticRegression extends ApplicationFrame {
     //Create gradients
     private static void createGradients(List<Instance> instances) {
         double[] sum = new double[theta.length];
-        for(int i=0; i< theta.length; i++){
+        for (int i = 0; i < theta.length; i++) {
             sum[i] = 0.0;
         }
         double[] grad = new double[theta.length];
@@ -228,11 +272,11 @@ public class LogisticRegression extends ApplicationFrame {
             double[] x = instance.xVariables;
             double hypothesis = createHypothesis(x);
             double y = instance.yValue;
-            for(int i=0; i< theta.length; i++){
-                sum[i] += hypothesis * x[i] - y*x[i];
+            for (int i = 0; i < theta.length; i++) {
+                sum[i] += hypothesis * x[i] - y * x[i];
             }
         }
-        for(int i=0; i< theta.length; i++){
+        for (int i = 0; i < theta.length; i++) {
             grad[i] = (1 / m) * sum[i];
         }
         System.out.println("Gradients with theta " + Arrays.toString(theta) + " : " + Arrays.toString(grad) + "");
@@ -266,7 +310,7 @@ public class LogisticRegression extends ApplicationFrame {
                 double hypothesis = createHypothesis(x);
                 double y = instance.yValue;
                 for (int i = 0; i < n; i++) {
-                    temp[i] += (hypothesis-y)*x[i];
+                    temp[i] += (hypothesis - y) * x[i];
                 }
             }
             double alpha = 0.001;
@@ -287,19 +331,19 @@ public class LogisticRegression extends ApplicationFrame {
     //Predict whether the label is 0 or 1 (not admitted or admitted) using
     //a threshold at 0.5 (i.e., if sigmoid(theta'*x) >= 0.5, predict 1)
     private static double predict(double[] scores) {
-        if(createHypothesis(scores) >= 0.5) return 1;
+        if (createHypothesis(scores) >= 0.5) return 1;
         return 0;
     }
 
     //Calculate accuracy of logistic regression
-    private static double calcAccuracyOfModel (List<Instance> instances) {
+    private static double calcAccuracyOfModel(List<Instance> instances) {
         int counter = 0;
         for (Instance instance : instances) {
             double[] x = instance.xVariables;
             double y = instance.yValue;
             if (predict(x) != y) counter++;
         }
-        return (1 - counter / m)*100;
+        return (1 - counter / m) * 100;
     }
 
 }
