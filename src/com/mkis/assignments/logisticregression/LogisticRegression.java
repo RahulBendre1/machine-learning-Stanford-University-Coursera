@@ -30,8 +30,7 @@ example, you have the applicant's scores on two exams and the admissions
 decision.
 
 With linear decision boundary.
-
-Initialize thetas so gradient descent will not get stuck in a local optima!*/
+Variables with feature scaling.*/
 
 public class LogisticRegression extends ApplicationFrame {
 
@@ -54,7 +53,7 @@ public class LogisticRegression extends ApplicationFrame {
         // Create the scatter data, renderer, and axis
         XYSeries seriesEx1 = new XYSeries("Admitted");
         for (int i = 0; i < dataSet.size(); i++) {
-            if (dataSet.get(i).yValue == 1) seriesEx1.add(dataSet.get(i).xVariables[1], dataSet.get(i).xVariables[2]);
+            if (dataSet.get(i).yValue == 1) seriesEx1.add(100*dataSet.get(i).xVariables[1], 100*dataSet.get(i).xVariables[2]); //100 <- feature scaling
         }
         XYDataset dataSetVisEx1 = getData(seriesEx1);
         XYItemRenderer rendererDataEx1 = new XYLineAndShapeRenderer(false, true);
@@ -72,7 +71,7 @@ public class LogisticRegression extends ApplicationFrame {
         // Create the scatter data, renderer, and axis
         XYSeries seriesEx2 = new XYSeries("Not admitted");
         for (int i = 0; i < dataSet.size(); i++) {
-            if (dataSet.get(i).yValue == 0) seriesEx2.add(dataSet.get(i).xVariables[1], dataSet.get(i).xVariables[2]);
+            if (dataSet.get(i).yValue == 0) seriesEx2.add(100*dataSet.get(i).xVariables[1], 100*dataSet.get(i).xVariables[2]); //100 <- feature scaling
         }
         XYDataset dataSetVisEx2 = getData(seriesEx2);
         XYItemRenderer rendererDataEx2 = new XYLineAndShapeRenderer(false, true);
@@ -94,8 +93,8 @@ public class LogisticRegression extends ApplicationFrame {
         // Create the line data, renderer, and axis
         XYSeries lineSeries = new XYSeries("Decision boundary");
         double x = 25;
-        while (x <= 100) {
-            lineSeries.add(x, (theta[0] + theta[1] * x) / (-1 * theta[2]));
+        while (x <= 105) {
+            lineSeries.add(x, ((theta[0] + theta[1] * (x/100)) / (-1 * theta[2]))*100); //100 <- feature scaling
             x += 1;
         }
         XYDataset lineDataSet = getLineData(lineSeries);
@@ -112,12 +111,6 @@ public class LogisticRegression extends ApplicationFrame {
         plot.setRenderer(2, rendererLine);
         plot.setDomainAxis(2, xAxisLine);
         plot.setRangeAxis(2, yAxisLine);
-
-        // Map the line to the second xAxis and second yAxis
-        /*plot.mapDatasetToDomainAxis(1, 0);
-        plot.mapDatasetToDomainAxis(1, 0);
-        plot.mapDatasetToRangeAxis(2, 0);
-        plot.mapDatasetToRangeAxis(2, 0);*/
 
         // Create the chart with the plot and a legend
         JFreeChart chart = new JFreeChart("Data set - Logistic Regression", JFreeChart.DEFAULT_TITLE_FONT, plot, true);
@@ -136,12 +129,11 @@ public class LogisticRegression extends ApplicationFrame {
         doGradientDescent(dataSet);
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSet));
         System.out.println("Accuracy of the model: " + calcAccuracyOfModel(dataSet) + " %");
-        //doLBFGS(dataSet);
 
         NumberFormat nf = new DecimalFormat("##.##");
         System.out.println("For a student with scores 45 and 85, we predict an admission probability: ");
-        System.out.println(nf.format(100 * (createHypothesis(new double[]{1, 45, 85}))) + " %");
-        System.out.println(predict(new double[]{1, 45, 85}) == 1 ? "He will be admitted." : "He will not be admitted.");
+        System.out.println(nf.format(100 * (createHypothesis(new double[]{1, 0.45, 0.85}))) + " %"); // /100 <- feature scaling
+        System.out.println(predict(new double[]{1, 0.45, 0.85}) == 1 ? "He will be admitted." : "He will not be admitted."); // /100 <- feature scaling
 
         LogisticRegression visualizationOfData = new LogisticRegression("Visualization of data");
         visualizationOfData.pack();
@@ -188,8 +180,9 @@ public class LogisticRegression extends ApplicationFrame {
                 double xArray[] = new double[columns.length];
                 xArray[0] = 1.0;
                 for (int i = 0; i < columns.length - 1; i++) {
-                    xArray[i + 1] = Double.parseDouble(columns[i]);
+                    xArray[i + 1] = Double.parseDouble(columns[i])/100; // /100 <- feature scaling, to get variables between 0 and 1
                 }
+                //System.out.println(xArray[0] +" | " +  xArray[1] + " | " +  xArray[2]);
                 Instance instance = new Instance(y, xArray);
                 dataSet.add(instance);
             }
@@ -204,12 +197,9 @@ public class LogisticRegression extends ApplicationFrame {
     //Initialize theta
     private static void initTheta() {
         theta = new double[n];
-        theta[0] = -20;
-        theta[1] = 5;
-        theta[2] = 1;
-        /*for (int i = 0; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             theta[i] = 0.0;
-        }*/
+        }
     }
 
     /*h (x) = 1/(1+exp(-z))  - Sigmoid function for h (x)
@@ -265,7 +255,7 @@ public class LogisticRegression extends ApplicationFrame {
 
     //Do gradient descent
     private static void doGradientDescent(List<Instance> instances) {
-        for (int k = 0; k < 5000; k++) {
+        for (int k = 0; k < 50000; k++) {
             double[] temp = new double[n];
             for (int i = 0; i < n; i++) {
                 temp[i] = 0.0;
@@ -276,17 +266,17 @@ public class LogisticRegression extends ApplicationFrame {
                 double hypothesis = createHypothesis(x);
                 double y = instance.yValue;
                 for (int i = 0; i < n; i++) {
-                    temp[i] = temp[i] + (hypothesis-y)*x[i];
+                    temp[i] += (hypothesis-y)*x[i];
                 }
             }
-            double alpha = 0.00001;
+            double alpha = 0.001;
             for (int i = 0; i < n; i++) {
                 theta[i] = theta[i] - alpha * temp[i];
             }
             iterations++;
             //Cost function to descend, theta after each iteration:
             //System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));
-            if (costFunctionOld - createCostFunction(dataSet) < 0.0001) {
+            if (costFunctionOld - createCostFunction(dataSet) < 0.000001) {
                 System.out.println("Number of iterations: " + iterations);
                 return;
             }
