@@ -9,8 +9,9 @@ classification task.*/
 /*There are 5000 training examples (originally .mat file), where each training
 example is a 20 pixel by 20 pixel grayscale image of the digit.
 
-The .mat file were converted to csv file, where one instance/training example is 400 variables (greyscale pixel double),
-and 1 (401st) class variable (1-10, 10is zero)
+The .mat file were converted to a txt file.
+One instance/training example is 400 variables (greyscale pixel double),
+and 1 (401st) class variable (1-10, 10 is the zero!)
 WEKA Naive Bayes Classifier was used.
 */
 
@@ -31,7 +32,7 @@ public class NaiveBayesWEKA {
     public static void main(String[] args) throws Exception {
 
         //Loading the dataset from csv
-        path = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\multiclassclassification\\data1.csv";
+        path = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\multiclassclassification\\data1.txt";
         CSVLoader loader = new CSVLoader();
         loader.setSource(new File(path));
         loader.setNoHeaderRowPresent(true); //No headers are present
