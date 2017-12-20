@@ -17,15 +17,17 @@ example is a 20 pixel by 20 pixel grayscale image of the digit.
 The .mat file were converted to a txt file with Octave.
 One instance/training example is 400 variables (greyscale pixel float),
 and 1 (401st attribute) class variable (1-10, 10 is the zero!).
- The network consists of an inpt layer (400 neurons + the bias), a hidden layer with 200 neurons + the bias and the output layer of the 10 classes(neurons)*/
+ The network consists of an input layer (400 neurons + the bias), a hidden layer with 200 neurons + the bias and the output layer of the 10 classes(neurons)*/
+
+/**Special thanks go to Ryan Harris for his perfect explanation of the subject (youtube).*/
 
 public class FeedForwardAndBackPropagation {
 
     private double[][] output; //output of every neuron, indexes: layer, neuron
     private double[][][] weights; //indexes: layer, neuron, neuron in the previous layer that is connected with
     private double[][] bias; //bias weights
-    private double[][] error_deltas; //error of every neuron, indexes: layer, neuron
-    private double[][] derivatives; //derivatives of every neuron, indexes: layer, neuron
+    private double[][] errors; //error of every neuron, indexes: layer, neuron
+    private double[][] sigmoid_derivatives; //derivatives of every neuron, indexes: layer, neuron
 
     private final int[] NETWORK_LAYER_SIZES; //neuron/nodes in each layer
     private final int INPUT_SIZE; //number of input neurons
@@ -74,14 +76,14 @@ public class FeedForwardAndBackPropagation {
         this.output = new double[NETWORK_SIZE][];
         this.weights = new double[NETWORK_SIZE][][];
         this.bias = new double[NETWORK_SIZE][];
-        this.error_deltas = new double[NETWORK_SIZE][];
-        this.derivatives = new double[NETWORK_SIZE][];
+        this.errors = new double[NETWORK_SIZE][];
+        this.sigmoid_derivatives = new double[NETWORK_SIZE][];
 
         for (int i = 0; i < NETWORK_SIZE; i++) {
             //in the 4th layer if we have 1 output neuron, then at the last layer output[3][1] (example below)
             this.output[i] = new double[NETWORK_LAYER_SIZES[i]];
-            this.error_deltas[i] = new double[NETWORK_LAYER_SIZES[i]];
-            this.derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
+            this.errors[i] = new double[NETWORK_LAYER_SIZES[i]];
+            this.sigmoid_derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
             //this.bias[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.bias[i] = initWeights(NETWORK_LAYER_SIZES[i]);
             //First/Input Layer does not have weights
@@ -93,7 +95,7 @@ public class FeedForwardAndBackPropagation {
         }
     }
 
-    //Feed forward method to return the outputs/activations for each neuron, input is the input variables in our dataset
+    //Feed forward method to return the outputs/activations for each neuron, input is the input variables in the dataset
     private double[] feedForward(double... input) {
         //Number of input variables have to be equal to the number of neurons in the input layer:
         if (input.length != this.INPUT_SIZE) {
@@ -112,8 +114,8 @@ public class FeedForwardAndBackPropagation {
                 }
                 //activation of this neuron:
                 output[layer][neuron] = sigmoid(sum);
-                //derivative term of this neuron:
-                derivatives[layer][neuron] = (output[layer][neuron] * (1 - output[layer][neuron]));
+                //derivative term of sigmoid of this neuron:
+                sigmoid_derivatives[layer][neuron] = (output[layer][neuron] * (1 - output[layer][neuron]));
             }
         }
         //Output of the network at the last layer
@@ -125,7 +127,7 @@ public class FeedForwardAndBackPropagation {
         return 1d / (1 + Math.exp(-z));
     }
 
-    //Init bias weights:
+    //Initialize biases/weights:
     private double[] initWeights(int size) {
         if (size < 1) {
             System.out.println("Number of neurons in a layer has to be a positive whole number.");
@@ -139,7 +141,7 @@ public class FeedForwardAndBackPropagation {
         return arr;
     }
 
-    //Init weights:
+    //Initialize weights:
     private double[][] initWeights(int size, int sizeNext) {
         if (size < 1 || sizeNext < 1) {
             System.out.println("Number of neurons in a layer has to be a positive whole number.");
@@ -191,42 +193,41 @@ public class FeedForwardAndBackPropagation {
         updateWeights(learning_rate);
     }
 
-    //Tridelta values, input is the target values (the output layer's/y values in our dataset)
+    //Back propagation starting from the output layer's target(s)
     private void backPropError(double[] target) {
         //Error's of output neurons:
         for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[NETWORK_SIZE - 1]; neuron++) {
-            error_deltas[NETWORK_SIZE - 1][neuron] = (output[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron];
+            errors[NETWORK_SIZE - 1][neuron] = (output[NETWORK_SIZE - 1][neuron] - target[neuron]) * sigmoid_derivatives[NETWORK_SIZE - 1][neuron];
         }
-        //Hidden layer errors, first/input layer does not have errors
+        //Hidden layer errors (From last hidden layer to the first), first/input layer does not have errors ofc
         for (int layer = NETWORK_SIZE - 2; layer > 0; layer--) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 double sum = 0;
                 for (int nextNeuron = 0; nextNeuron < NETWORK_LAYER_SIZES[layer + 1]; nextNeuron++) {
-                    //sum of the weights of the next layers neurons * tridelta terms
-                    sum += weights[layer + 1][nextNeuron][neuron] * error_deltas[layer + 1][nextNeuron];
+                    //sum of the: previous (+1) layer's error times the weights going to that neuron from the current neuron
+                    sum += weights[layer + 1][nextNeuron][neuron] * errors[layer + 1][nextNeuron];
                 }
-                this.error_deltas[layer][neuron] = sum * derivatives[layer][neuron];
+                this.errors[layer][neuron] = sum * sigmoid_derivatives[layer][neuron];
             }
         }
     }
 
-    //first hidden layer to the output layer, 1 iteration
+    //First hidden layer to the output layer, 1 iteration, updating our weights: W + deltaW -> W, and Biases: B + deltaW -> B (deltaB is equal to deltaW)
     private void updateWeights(double learning_rate) {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
-                //for the bias, when j=0:
-                double deltaWeight = -learning_rate * error_deltas[layer][neuron];
-                bias[layer][neuron] += deltaWeight;
-                //for the rest, when j !=0:
+                //for the bias:
+                double deltaW= -learning_rate * errors[layer][neuron];
+                bias[layer][neuron] += deltaW;
+                //for the rest:
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    //weights[layer][neuron][prevNeuron]
-                    weights[layer][neuron][prevNeuron] += deltaWeight * output[layer - 1][prevNeuron];
+                    weights[layer][neuron][prevNeuron] += deltaW* output[layer - 1][prevNeuron];
                 }
             }
         }
     }
 
-    //Predict
+    //Prediction (1 if >= .5)
     private double predict(double[] x) {
         if (feedForward(x)[0] >= 0.5) return 1;
         return 0;
