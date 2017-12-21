@@ -15,3 +15,6 @@ l.(com.mkis.assignments.gradientdescentandnormalequation)
 3.(com.mkis.assignments.multiclassclassification)
 - Multiclass: One vs all method using logistic regression with gradient descent applying mean normalization
 - Naive Bayes algorithm used on the same task (using WEKA API)
+
+4.(com.mkis.assignments.neuralnetwork)
+- Convolutional Neural Network with Feed Forward and Back Propagation
