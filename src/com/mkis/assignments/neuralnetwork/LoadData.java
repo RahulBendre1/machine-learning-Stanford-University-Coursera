@@ -5,18 +5,21 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /**
- * Load in csv data, first-last column are the input variables/features/attributes, last column is the class value(s)
+ * Load in csv data, first-last column are the input variables/features/attributes, last column is/are the class value/s
  */
 
 public class LoadData {
 
-    private List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
-    private double m; // number of training examples
-    private int n; // number of columns in dataset with last being the class value
-    private List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature (m training examples)
-    private List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min value of each feature (m training examples)
+    private List<Instance> dataSet = new ArrayList<>(); //list containing all the data
+    private List<Instance> trainingSet = new ArrayList<>(); //list containing the training examples
+    private List<Instance> crossValidationSet = new ArrayList<>(); //list containing the cross validation examples (dataset-trainingset)/2
+    private List<Instance> testSet = new ArrayList<>(); //list containing the test examples (dataset-trainingset)/2
+    private int n; // number of columns in the dataset, last being the class value
+    private List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
+    private List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min value of each feature
 
     public static class Instance {
         double[] classValues;
@@ -35,7 +38,7 @@ public class LoadData {
         String line;
         String[] columns;
         List<List<Double>> tempList = new ArrayList<>();
-        m = 0;
+        double m = 0;
         while ((line = bufferedReader.readLine()) != null) {
             columns = line.split(",");
             n = columns.length;
@@ -50,6 +53,7 @@ public class LoadData {
             }
             m++;
         }
+        //System.out.println("The numer of rows in the dataset: " + m);
         //for mean normalization get means and (max-min)s of all all features
         for (int i = 0; i < n - 1; i++) {
             meansOfFeatures.add(i, tempList.get(i).stream().mapToDouble(val -> val).average().getAsDouble());
@@ -59,8 +63,9 @@ public class LoadData {
         reader.close();
     }
 
-    //Load the data from the file, outputs the dataSet (list of Instances)
-    public List<Instance> loadData(String file, boolean featureNormalize) throws java.io.IOException {
+    //Load the data from the file, outputs the shuffled dataSet (list of Instances)
+    //trainingSetRatio is double value between 0-100
+    public void loadData(String file, boolean featureNormalize, double trainingSetRatio) throws java.io.IOException {
         getInfoOnData(file);
         FileReader reader = new FileReader(file);
         BufferedReader bufferedReader = new BufferedReader(reader);
@@ -114,7 +119,30 @@ public class LoadData {
         }
         bufferedReader.close();
         reader.close();
-        return dataSet;
+        Collections.shuffle(dataSet, new Random());
+        groupRandomizedDataSet(dataSet, trainingSetRatio/100);
+    }
+
+    //Create training, cross-validation and test set
+    private void groupRandomizedDataSet(List<Instance> data, double ratio) {
+        int sizeTraining = (int)((double)data.size() * ratio);
+        int sizeCrossValidation = (data.size() - sizeTraining) / 2;
+        for (int i = 0; i < data.size(); i++) {
+            if (i < sizeTraining) trainingSet.add(data.get(i));
+            if (sizeTraining < i && i < sizeTraining + sizeCrossValidation) crossValidationSet.add(data.get(i));
+            if (sizeTraining + sizeCrossValidation < i) testSet.add(data.get(i));
+        }
+    }
+
+    //Getters the different type of sets:
+    public List<Instance> getTrainingSet(){
+        return trainingSet;
+    }
+    public List<Instance> getCrossValidationSet(){
+        return crossValidationSet;
+    }
+    public List<Instance> getTestSet(){
+        return testSet;
     }
 
     //Feature normalizes the test variables
