@@ -136,7 +136,7 @@ public class FeedForwardAndBackPropagation {
     }
 
     //Mean squared error of 1 training example
-    private double MSE(double[] input, double[] target) {
+    private double calculateMSE(double[] input, double[] target) {
         if (input.length != INPUT_SIZE || target.length != OUTPUT_SIZE) return 0;
         feedForward(input);
         double v = 0;
@@ -147,10 +147,10 @@ public class FeedForwardAndBackPropagation {
     }
 
     //Error of the training set - cost function
-    private double costFunction(List<LoadData.Instance> instances) {
+    private double calculateTrainingSetError(List<LoadData.Instance> instances) {
         double v = 0;
         for (LoadData.Instance instance : instances) {
-            v += MSE(instance.inputVariables, instance.classValues);
+            v += calculateMSE(instance.inputVariables, instance.classValues);
         }
         return v / instances.size();
     }
@@ -163,7 +163,7 @@ public class FeedForwardAndBackPropagation {
                 double[] y = instance1.classValues;
                 this.train(x, y, learning_rate);
             }
-            System.out.println("Error of the instance at iteration (" + iteration + "):  " + costFunction(instances));
+            System.out.println("Error of the instance at iteration (" + iteration + "):  " + calculateTrainingSetError(instances));
         }
     }
 
