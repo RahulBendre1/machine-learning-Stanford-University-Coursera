@@ -31,6 +31,7 @@ public class FeedForwardAndBackPropagation {
     private double[][] bias; //bias weights
     private double[][] errors; //error of every neuron, indexes: layer, neuron
     private double[][] sigmoid_derivatives; //derivatives of every neuron, indexes: layer, neuron
+    private double threshold = 0.5; //threshold for the prediction
 
     private final int[] NETWORK_LAYER_SIZES; //neuron/nodes in each layer
     private final int INPUT_SIZE; //number of input neurons
@@ -209,18 +210,30 @@ public class FeedForwardAndBackPropagation {
     }
 
     //Prediction (1 if >= .5)
-    private double predict(double[] x) {
-        if (feedForward(x)[0] >= 0.5) return 1;
-        return 0;
+    private double[] predict(double[] x) {
+        double[] output = feedForward(x);
+        double[] predicted = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        for (int i = 0; i < output.length; i++) {
+            if (output[i] >= threshold) {
+                predicted[i] = 1;
+            } else {
+                predicted[i] = 0;
+            }
+        }
+        return predicted;
     }
 
     //Calculate accuracy of the network
     private double calcAccuracyOfModel(List<LoadData.Instance> instances) {
         int counter = 0;
+        main:
         for (LoadData.Instance instance : instances) {
             double[] x = instance.inputVariables;
             double[] y = instance.classValues;
-            if (predict(x) != y[0]) counter++;
+            for(int i = 0; i < y.length; i++) {
+                if (predict(x)[i] != y[i]) counter++;
+                continue main;
+            }
         }
         return (1 - counter / (double) instances.size()) * 100;
     }
