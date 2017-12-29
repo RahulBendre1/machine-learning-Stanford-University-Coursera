@@ -45,7 +45,7 @@ public class FeedForwardAndBackPropagation {
         LoadData loadData = new LoadData();
         String file = "C:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\neuralnetwork\\data1.txt";
         loadData.loadData(file, true, 80);
-        test.train(loadData.getTrainingSet(), 100, 1);
+        test.train(loadData.getTrainingSet(), 100, 1, 0);
 
         System.out.println("Accuracy tested on the cross-validation set: " + test.calcAccuracyOfModel(loadData.getCrossValidationSet()) + " %");
 
@@ -157,22 +157,22 @@ public class FeedForwardAndBackPropagation {
     }
 
     //Train the dataset
-    private void train(List<LoadData.Instance> instances, int iterations, double learning_rate) {
+    private void train(List<LoadData.Instance> instances, int iterations, double learning_rate, double lambda) {
         for (int iteration = 0; iteration < iterations; iteration++) {
             for (LoadData.Instance instance1 : instances) {
                 double[] x = instance1.inputVariables;
                 double[] y = instance1.classValues;
-                this.train(x, y, learning_rate);
+                this.train(x, y, learning_rate, lambda);
             }
             System.out.println("Error of the instance at iteration (" + iteration + "):  " + calculateTrainingSetError(instances));
         }
     }
 
     //Training 1 training example:
-    private void train(double[] input, double[] target, double learning_rate) {
+    private void train(double[] input, double[] target, double learning_rate, double lambda) {
         feedForward(input);
         backPropError(target);
-        updateWeights(learning_rate);
+        updateWeights(learning_rate, lambda);
     }
 
     //Back propagation starting from the output layer's target(s)
@@ -195,7 +195,7 @@ public class FeedForwardAndBackPropagation {
     }
 
     //First hidden layer to the output layer, 1 iteration, updating our weights: W + deltaW -> W, and Biases: B + deltaW -> B (deltaB is equal to deltaW)
-    private void updateWeights(double learning_rate) {
+    private void updateWeights(double learning_rate, double lambda) {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 //for the bias:
@@ -203,7 +203,7 @@ public class FeedForwardAndBackPropagation {
                 bias[layer][neuron] += deltaW;
                 //for the rest:
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    weights[layer][neuron][prevNeuron] += deltaW * output[layer - 1][prevNeuron];
+                    weights[layer][neuron][prevNeuron] += deltaW * output[layer - 1][prevNeuron] + lambda * weights[layer][neuron][prevNeuron];
                 }
             }
         }
