@@ -33,7 +33,7 @@ on past microchips, from which you can build a logistic regression model.
 With non-linear decision boundary using feature mapping.*/
 
 public class RegularizedLogisticRegression extends ApplicationFrame {
-    private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\logisticregression\\data2.txt";
+    private static String file = "C:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\logisticregression\\data2.txt";
     private static double m; // number of training examples
     private static int n; // number of features
 
@@ -238,7 +238,7 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
         }
         double sum = 0.0;
         for (int i = 0; i < instances.get(0).xVariables.length; i++) {
-            sum += theta[i];
+            sum += Math.pow(theta[i],2);
         }
         double J = (1 / m) * cost + (lambda / (2 * m)) * sum; //regularized
         //System.out.println("Cost function value with theta " + Arrays.toString(theta) + ": " + J);
