@@ -31,7 +31,7 @@ import java.util.Random;
 
 public class FeedForwardAndBackPropagation {
 
-    private double[][] output; //output of every neuron, indexes: layer, neuron
+    private double[][] outputs; //output of every neuron, indexes: layer, neuron
     private double[][][] weights; //indexes: layer, neuron, neuron in the previous layer that is connected with
     private double[][] biases; //bias weights
     private double[][] errors; //error of every neuron, indexes: layer, neuron
@@ -66,10 +66,10 @@ public class FeedForwardAndBackPropagation {
         double[] lambda = new double[]{0, 0.01, 0.03, 0.05, 0.08, 0.1, 1, 3, 4};
 
         for (int i = 0; i < lambda.length; i++) {
-            System.out.println("\nTraining for the " + (i + 1) + ". lambda (reg.) value...");
+            System.out.println("\nTraining for lambda ("+lambda[i]+")...");
             test.weights = test.initialWeights;
             test.biases = test.initialBiases;
-            test.output = test.initialOutput;
+            test.outputs = test.initialOutput;
             test.derivatives = test.initialDerivatives;
             test.errors = test.initialErrors;
             test.train(trSet, cvSet, 100, 1, lambda[i]);
@@ -99,7 +99,7 @@ public class FeedForwardAndBackPropagation {
         this.NETWORK_LAYER_SIZES = NETWORK_LAYER_SIZES;
         this.NETWORK_SIZE = NETWORK_LAYER_SIZES.length;
 
-        this.output = new double[NETWORK_SIZE][];
+        this.outputs = new double[NETWORK_SIZE][];
         this.weights = new double[NETWORK_SIZE][][];
         this.biases = new double[NETWORK_SIZE][];
         this.errors = new double[NETWORK_SIZE][];
@@ -112,12 +112,12 @@ public class FeedForwardAndBackPropagation {
         this.initialDerivatives = new double[NETWORK_SIZE][];
 
         for (int i = 0; i < NETWORK_SIZE; i++) {
-            this.output[i] = new double[NETWORK_LAYER_SIZES[i]];
+            this.outputs[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.errors[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.biases[i] = initWeights(NETWORK_LAYER_SIZES[i]);
 
-            this.initialOutput[i] = this.output[i];
+            this.initialOutput[i] = this.outputs[i];
             this.initialErrors[i] = this.errors[i];
             this.initialDerivatives[i] = this.derivatives[i];
             this.initialBiases[i] = this.biases[i];
@@ -133,23 +133,23 @@ public class FeedForwardAndBackPropagation {
     //Feed forward method to return the outputs/activations for each neuron, input is the input variables in the dataset
     private double[] feedForward(double... input) {
         //Output of the input layer is the array of the input variables:
-        this.output[0] = input;
+        this.outputs[0] = input;
         //Iterate through all the other (layers's) neurons to get the activations for every one of them:
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 double sum = this.biases[layer][neuron]; //init with the bias weight
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
                     //sum(activation in the previous layers's neurons * weights of the previous layers
-                    sum += this.output[layer - 1][prevNeuron] * this.weights[layer][neuron][prevNeuron];
+                    sum += this.outputs[layer - 1][prevNeuron] * this.weights[layer][neuron][prevNeuron];
                 }
                 //activation of this neuron:
-                this.output[layer][neuron] = sigmoid(sum);
+                this.outputs[layer][neuron] = sigmoid(sum);
                 //derivative term of sigmoid of this neuron:
-                this.derivatives[layer][neuron] = (this.output[layer][neuron] * (1 - this.output[layer][neuron]));
+                this.derivatives[layer][neuron] = (this.outputs[layer][neuron] * (1 - this.outputs[layer][neuron]));
             }
         }
         //Output of the network at the last layer
-        return output[NETWORK_SIZE - 1];
+        return outputs[NETWORK_SIZE - 1];
     }
 
     //Sigmoid function:
@@ -184,7 +184,7 @@ public class FeedForwardAndBackPropagation {
         return arr;
     }
 
-    //Train the dataset
+    //Train
     private void train(List<LoadData.Instance> trainingSet, List<LoadData.Instance> CVSet, int iterations, double learning_rate, double lambda) {
         this.m = (double) trainingSet.size();
         for (int iteration = 0; iteration < iterations; iteration++) {
@@ -200,7 +200,7 @@ public class FeedForwardAndBackPropagation {
         }
     }
 
-    //Training 1 training example:
+    //Training (1 training example):
     private void train(double[] input, double[] target, double learning_rate, double lambda) {
         feedForward(input);
         backPropError(target);
@@ -239,7 +239,7 @@ public class FeedForwardAndBackPropagation {
         return (-1 * cost / m) + regSum * lambda / (2 * m);
     }
 
-    //Create cost function (not regularized) for CV set
+    //Create cost function (not regularized) for CV set for evaluation
     private double createCostFunction(List<LoadData.Instance> instances) {
         double cost = 0.0;
         for (LoadData.Instance instance : instances) {
@@ -259,7 +259,7 @@ public class FeedForwardAndBackPropagation {
     private void backPropError(double[] target) {
         //Error's of output neurons:
         for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[NETWORK_SIZE - 1]; neuron++) {
-            this.errors[NETWORK_SIZE - 1][neuron] = (output[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron];
+            this.errors[NETWORK_SIZE - 1][neuron] = (outputs[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron];
         }
         //Hidden layer errors (From last hidden layer to the first), first/input layer does not have errors ofc
         for (int layer = NETWORK_SIZE - 2; layer > 0; layer--) {
@@ -283,7 +283,7 @@ public class FeedForwardAndBackPropagation {
                 this.biases[layer][neuron] += deltaW;
                 //for the rest:
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    this.weights[layer][neuron][prevNeuron] = (1 - learning_rate * lambda / m) * weights[layer][neuron][prevNeuron] + deltaW * output[layer - 1][prevNeuron];
+                    this.weights[layer][neuron][prevNeuron] = (1 - learning_rate * lambda / m) * weights[layer][neuron][prevNeuron] + deltaW * outputs[layer - 1][prevNeuron];
                 }
             }
         }

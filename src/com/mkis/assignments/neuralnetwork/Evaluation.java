@@ -12,7 +12,7 @@ import org.jfree.ui.ApplicationFrame;
 
 import java.util.List;
 
-/**Plotting the final cost function of the training and cross-validation set to see if high variance or bias occurs.
+/**Plotting the final cost function of the training and cross-validation set to see if high variance (over-fitting) or bias (under-fitting) occurs.
  * Choose lambda where the Cross-Validation set's cost function has its minimum.
  */
 
@@ -46,13 +46,10 @@ public class Evaluation extends ApplicationFrame {
 
         //Training set
         renderer.setSeriesLinesVisible(0, true);
-        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesShapesVisible(0, true);
         //Cross-validation set
         renderer.setSeriesLinesVisible(1, true);
-        renderer.setSeriesShapesVisible(1, false);
-        //Test set
-        renderer.setSeriesLinesVisible(2, true);
-        renderer.setSeriesShapesVisible(2, false);
+        renderer.setSeriesShapesVisible(1, true);
 
         plot.setRenderer(renderer);
         final ChartPanel chartPanel = new ChartPanel(chart);
