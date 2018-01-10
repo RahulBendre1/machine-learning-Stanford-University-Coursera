@@ -55,7 +55,8 @@ public class FeedForwardAndBackPropagation {
 
     public static void main(String[] args) throws java.io.IOException {
 
-        String file = "C:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\neuralnetwork\\data1.txt";
+        String file = "D" +
+                ":\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\neuralnetwork\\data1.txt";
         FeedForwardAndBackPropagation test = new FeedForwardAndBackPropagation(400, 200, 10);
         LoadData loadData = new LoadData();
         loadData.loadData(file, true, 80);
@@ -66,7 +67,7 @@ public class FeedForwardAndBackPropagation {
         double[] lambda = new double[]{0, 0.01, 0.03, 0.05, 0.08, 0.1, 1, 3, 4};
 
         for (int i = 0; i < lambda.length; i++) {
-            System.out.println("\nTraining for lambda ("+lambda[i]+")...");
+            System.out.println("\nTraining for lambda (" + lambda[i] + ")...");
             test.weights = test.initialWeights;
             test.biases = test.initialBiases;
             test.outputs = test.initialOutput;
@@ -259,7 +260,7 @@ public class FeedForwardAndBackPropagation {
     private void backPropError(double[] target) {
         //Error's of output neurons:
         for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[NETWORK_SIZE - 1]; neuron++) {
-            this.errors[NETWORK_SIZE - 1][neuron] = (outputs[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron];
+            this.errors[NETWORK_SIZE - 1][neuron] = outputs[NETWORK_SIZE - 1][neuron] - target[neuron];
         }
         //Hidden layer errors (From last hidden layer to the first), first/input layer does not have errors ofc
         for (int layer = NETWORK_SIZE - 2; layer > 0; layer--) {
