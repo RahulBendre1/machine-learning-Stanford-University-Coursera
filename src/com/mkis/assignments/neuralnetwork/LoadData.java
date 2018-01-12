@@ -99,9 +99,14 @@ public class LoadData {
             double xArray[] = new double[n - 1];
             for (int i = 0; i < n - 1; i++) {
                 if (featureNormalize) {
-                    // feature scaling to get variable values between 0 and 1
+                    //Feature scaling to get variable values between 0 and 1:
+                    //In case all values of this feature are zero, to avoid division with zero
                     if (meansOfFeatures.get(i) == 0 || maxMinusMinOfFeatures.get(i) == 0) {
-                        xArray[i] = Double.parseDouble(columns[i]);
+                        xArray[i] = 0;
+                    }
+                    //In case all values of this features are the same, but non-zero (typical problem in case of picture images)
+                    if (meansOfFeatures.get(i) == Double.parseDouble(columns[i]) && maxMinusMinOfFeatures.get(i) == 0) {
+                        xArray[i] = 1;
                     } else {
                         xArray[i] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i);
                     }
@@ -149,8 +154,13 @@ public class LoadData {
     public double[] createFeatureNormalizedTestValue(double[] testVariables) {
         double[] featureNormalizedTestValue = new double[n - 1];
         for (int i = 0; i < n - 1; i++) {
+            //In case all values of this feature are zeros, to avoid division with zero
             if (meansOfFeatures.get(i) == 0 || maxMinusMinOfFeatures.get(i) == 0) {
-                featureNormalizedTestValue[i] = testVariables[i];
+                featureNormalizedTestValue[i] = 0;
+            }
+            //In case all values of this features are the same, but non-zero (typical problem in case of picture images)
+            if (meansOfFeatures.get(i) == testVariables[i] && maxMinusMinOfFeatures.get(i) == 0) {
+                featureNormalizedTestValue[i] = 1; //the double number is the maximum value of this feature
             } else {
                 featureNormalizedTestValue[i] = (testVariables[i] - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i);
             }
