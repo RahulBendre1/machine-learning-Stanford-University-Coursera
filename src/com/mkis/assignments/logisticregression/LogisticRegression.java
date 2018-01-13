@@ -40,6 +40,7 @@ public class LogisticRegression extends ApplicationFrame {
     private static int n; // number of features
     private static int iterations = 0;// number of iterations needed for gradient descent
     private static double theta[]; // parameters/weights array
+    private static double momentumTheta[]; // parameters/weights array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
     private static List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
     private static List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min of each feature
@@ -241,8 +242,10 @@ public class LogisticRegression extends ApplicationFrame {
     //Initialize theta with zeros
     private static void initTheta() {
         theta = new double[n];
+        momentumTheta = new double[n];
         for (int i = 0; i < n; i++) {
             theta[i] = 0.0;
+            momentumTheta[i] = 0.0;
         }
     }
 
@@ -297,9 +300,11 @@ public class LogisticRegression extends ApplicationFrame {
         return sigmoid(hypothesis);
     }
 
-    //Do gradient descent
+    //Do gradient descent with momentum
     private static void doGradientDescent(List<Instance> instances) {
-        for (int k = 0; k < 50000; k++) {
+        double alpha = 1.5;
+        double beta = 0.9;
+        for (int k = 0; k < 500; k++) {
             double[] temp = new double[n];
             for (int i = 0; i < n; i++) {
                 temp[i] = 0.0;
@@ -313,14 +318,14 @@ public class LogisticRegression extends ApplicationFrame {
                     temp[i] += (hypothesis - y) * x[i];
                 }
             }
-            double alpha = 0.001;
             for (int i = 0; i < n; i++) {
-                theta[i] = theta[i] - alpha * temp[i];
+                momentumTheta[i] = beta * momentumTheta[i] + (1 - beta) * temp[i];
+                theta[i] = theta[i] - alpha * momentumTheta[i];
             }
             iterations++;
             //Cost function to descend, theta after each iteration:
             //System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));
-            if (costFunctionOld - createCostFunction(dataSet) < 0.000001) {
+            if (costFunctionOld - createCostFunction(dataSet) < 0.001) {
                 System.out.println("Number of iterations: " + iterations);
                 return;
             }
