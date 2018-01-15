@@ -31,7 +31,8 @@ example, you have the applicant's scores on two exams and the admissions
 decision.
 
 With linear decision boundary.
-Variables with feature scaling.*/
+Variables with feature scaling
+ADAM optimization algorithm for faster convergence*/
 
 public class LogisticRegression extends ApplicationFrame {
 
@@ -40,7 +41,10 @@ public class LogisticRegression extends ApplicationFrame {
     private static int n; // number of features
     private static int iterations = 0;// number of iterations needed for gradient descent
     private static double theta[]; // parameters/weights array
-    private static double momentumTheta[]; // parameters/weights array
+    private static double momentumTheta[]; // momentum
+    private static double momentumThetaCorrected[]; // corrected momentum
+    private static double RMSTheta[]; // RMS
+    private static double RMSThetaCorrected[]; // corrected RMS
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
     private static List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
     private static List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min of each feature
@@ -134,7 +138,7 @@ public class LogisticRegression extends ApplicationFrame {
 
         getNumberOfFeaturesAndTrainingExamples();
         loadData();
-        initTheta();
+        init();
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSet));
         createGradients(dataSet);
         doGradientDescent(dataSet);
@@ -240,12 +244,18 @@ public class LogisticRegression extends ApplicationFrame {
     }
 
     //Initialize theta with zeros
-    private static void initTheta() {
+    private static void init() {
         theta = new double[n];
         momentumTheta = new double[n];
+        RMSTheta = new double[n];
+        momentumThetaCorrected = new double[n];
+        RMSThetaCorrected = new double[n];
         for (int i = 0; i < n; i++) {
             theta[i] = 0.0;
             momentumTheta[i] = 0.0;
+            RMSTheta[i] = 0.0;
+            momentumThetaCorrected[i] = 0.0;
+            RMSThetaCorrected[i] = 0.0;
         }
     }
 
@@ -300,11 +310,13 @@ public class LogisticRegression extends ApplicationFrame {
         return sigmoid(hypothesis);
     }
 
-    //Do gradient descent with momentum
+    //Do gradient descent with ADAM algorithm
     private static void doGradientDescent(List<Instance> instances) {
-        double alpha = 1.5;
-        double beta = 0.9;
-        for (int k = 0; k < 500; k++) {
+        double alpha = 0.5;
+        double beta1 = 0.9;
+        double beta2 = 0.999;
+        double epsilon = Math.pow(10, -8);
+        for (int t = 1; t < 100; t++) {
             double[] temp = new double[n];
             for (int i = 0; i < n; i++) {
                 temp[i] = 0.0;
@@ -318,13 +330,21 @@ public class LogisticRegression extends ApplicationFrame {
                     temp[i] += (hypothesis - y) * x[i];
                 }
             }
+            momentumTheta[0] = beta1 * momentumTheta[0] + (1 - beta1) * temp[0];
+            RMSTheta[0] = beta2 * RMSTheta[0] + (1 - beta2) * Math.pow(temp[0], 2);
+            momentumThetaCorrected[0] = momentumTheta[0] / (1 - Math.pow(beta1, (double) t));
+            RMSThetaCorrected[0] = RMSTheta[0] / (1 - Math.pow(beta2, (double) t));
+            theta[0] = theta[0] - alpha * momentumThetaCorrected[0] / (Math.sqrt(RMSThetaCorrected[0]) + epsilon);
             for (int i = 0; i < n; i++) {
-                momentumTheta[i] = beta * momentumTheta[i] + (1 - beta) * temp[i];
-                theta[i] = theta[i] - alpha * momentumTheta[i];
+                momentumTheta[i] = beta1 * momentumTheta[i] + (1 - beta1) * temp[i];
+                RMSTheta[i] = beta2 * RMSTheta[i] + (1 - beta2) * Math.pow(temp[i], 2);
+                momentumThetaCorrected[i] = momentumTheta[i] / (1 - Math.pow(beta1, (double) t));
+                RMSThetaCorrected[i] = RMSTheta[i] / (1 - Math.pow(beta2, (double) t));
+                theta[i] = theta[i] - alpha * momentumThetaCorrected[i] / (Math.sqrt(RMSThetaCorrected[i]) + epsilon);
             }
             iterations++;
             //Cost function to descend, theta after each iteration:
-            //System.out.println("Iteration: " + iterations + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));
+            System.out.println("Iteration: " + t + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));
             if (costFunctionOld - createCostFunction(dataSet) < 0.001) {
                 System.out.println("Number of iterations: " + iterations);
                 return;
