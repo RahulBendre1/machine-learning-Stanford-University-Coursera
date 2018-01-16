@@ -74,6 +74,10 @@ public class LogisticRegression extends ApplicationFrame {
         rendererDataEx1.setBasePaint(Color.GREEN);
         ValueAxis xAxisDataEx1 = new NumberAxis("Exam 1 score");
         ValueAxis yAxisDataEx1 = new NumberAxis("Exam 2 score");
+        xAxisDataEx1.setLowerBound(25);
+        xAxisDataEx1.setUpperBound(105);
+        yAxisDataEx1.setLowerBound(25);
+        yAxisDataEx1.setUpperBound(105);
 
         // Set the scatter data, renderer, and axis into plot
         plot.setDataset(0, dataSetVisEx1);
@@ -91,19 +95,10 @@ public class LogisticRegression extends ApplicationFrame {
         }
         XYDataset dataSetVisEx2 = getData(seriesEx2);
         XYItemRenderer rendererDataEx2 = new XYLineAndShapeRenderer(false, true);
-        rendererDataEx2.setBasePaint(Color.ORANGE);
-        ValueAxis xAxisDataEx2 = new NumberAxis();
-        ValueAxis yAxisDataEx2 = new NumberAxis();
-        xAxisDataEx2.setAxisLineVisible(false);
-        xAxisDataEx2.setVerticalTickLabels(false);
-        yAxisDataEx2.setAxisLineVisible(false);
-        yAxisDataEx2.setVerticalTickLabels(false);
 
         // Set the scatter data, renderer, and axis into plot
         plot.setDataset(1, dataSetVisEx2);
         plot.setRenderer(1, rendererDataEx2);
-        plot.setDomainAxis(1, xAxisDataEx2);
-        plot.setRangeAxis(1, yAxisDataEx2);
 
         //SETUP LINE graph
         // Create the line data, renderer, and axis
@@ -116,18 +111,10 @@ public class LogisticRegression extends ApplicationFrame {
         }
         XYDataset lineDataSet = getLineData(lineSeries);
         XYItemRenderer rendererLine = new XYLineAndShapeRenderer(true, false);   // Lines only
-        ValueAxis xAxisLine = new NumberAxis();
-        ValueAxis yAxisLine = new NumberAxis();
-        xAxisLine.setAxisLineVisible(false);
-        xAxisLine.setVerticalTickLabels(false);
-        yAxisLine.setAxisLineVisible(false);
-        yAxisLine.setVerticalTickLabels(false);
 
         // Set the line data, renderer, and axis into plot
         plot.setDataset(2, lineDataSet);
         plot.setRenderer(2, rendererLine);
-        plot.setDomainAxis(2, xAxisLine);
-        plot.setRangeAxis(2, yAxisLine);
 
         // Create the chart with the plot and a legend
         JFreeChart chart = new JFreeChart("Data set - Logistic Regression", JFreeChart.DEFAULT_TITLE_FONT, plot, true);

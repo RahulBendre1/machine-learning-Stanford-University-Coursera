@@ -33,7 +33,7 @@ on past microchips, from which you can build a logistic regression model.
 With non-linear decision boundary using feature mapping.*/
 
 public class RegularizedLogisticRegression extends ApplicationFrame {
-    private static String file = "C:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\logisticregression\\data2.txt";
+    private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\logisticregression\\data2.txt";
     private static double m; // number of training examples
     private static int n; // number of features
 
@@ -62,7 +62,6 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
         double x1 = 0.2;
         double x2 = 0.2;
         System.out.println("\nFor a microchip with test 1 scores 1: " + x1 + " and test 2 score: " + x2 + " , we predict an acceptance probability: ");
-        //System.out.println(theta[0] + theta[1]*x1 + theta[2]*x2  + theta[3] * Math.pow(x1, 2) + theta[4] * Math.pow(x2, 2));
         System.out.println(nf.format(100 * (1- (createHypothesis(new double[]{1, x1, x2, Math.pow(x1, 2), Math.pow(x2, 2)})))) + " %"); // 1s inside circle so it is the other way around compared to the previous part
         System.out.println(predict(new double[]{1, x1, x2, Math.pow(x1, 2), Math.pow(x2, 2)}) == 1 ? "Accepted." : "Rejected.");
 
@@ -112,73 +111,34 @@ public class RegularizedLogisticRegression extends ApplicationFrame {
         XYDataset dataSetVisEx2 = getData(seriesEx2);
         XYItemRenderer rendererDataEx2 = new XYLineAndShapeRenderer(false, true);
         rendererDataEx2.setBasePaint(Color.ORANGE);
-        ValueAxis xAxisDataEx2 = new NumberAxis();
-        ValueAxis yAxisDataEx2 = new NumberAxis();
-        xAxisDataEx2.setLowerBound(-1.5);
-        xAxisDataEx2.setUpperBound(1.5);
-        xAxisDataEx2.setAxisLineVisible(false);
-        xAxisDataEx2.setVerticalTickLabels(false);
-        yAxisDataEx2.setLowerBound(-1.5);
-        yAxisDataEx2.setUpperBound(1.5);
-        yAxisDataEx2.setAxisLineVisible(false);
-        yAxisDataEx2.setVerticalTickLabels(false);
 
         // Set the scatter data, renderer, and axis into plot
         plot.setDataset(1, dataSetVisEx2);
         plot.setRenderer(1, rendererDataEx2);
-        plot.setDomainAxis(1, xAxisDataEx2);
-        plot.setRangeAxis(1, yAxisDataEx2);
 
         //SETUP LINE graph
         // Create the line data, renderer, and axis
         XYSeries lineSeries = new XYSeries("Decision boundary", false); //Set autoSort to false to not get lines all over the place
         double x = -3;
         while (x <= 3) {
-            //      0 = t0 + t1 * x1 + t2 * x2 + t3 * x1^2 + t4 * x2^2, let x2 be y, solver for y
-            //y = +- ...
             lineSeries.add(x, (-1*theta[1]  + Math.sqrt(Math.pow(theta[1], 2) - 4 * theta[3] *(theta[0] + theta[2] * x + theta [4] * Math.pow(x, 2))))/(2*theta[4]));
-            //lineSeries.add(x, (-1*theta[1]  - Math.sqrt(Math.pow(theta[1], 2) - 4 * theta[3] *(theta[0] + theta[2] * x + theta [4] * Math.pow(x, 2))))/(2*theta[4]));
-            //      0 = t0 + 1 * x1^2 + t2 * x2^2, let x2 be y, solver for y
-            //y = +- ...
-            // y  = -1*(Math.sqrt(-1*theta[0]- theta[1] * Math.pow(x, 2)))/Math.sqrt(theta[2]) , c!=0
-            //lineSeries.add(x, -1*(Math.sqrt(-1*theta[0]- theta[1] * Math.pow(x, 2)))/Math.sqrt(theta[2]));
             x += 0.05;
         }
         double y = 3;
         while (y >= -3) {
-            //      0 = t0 + t1 * x1 + t2 * x2 + t3 * x1^2 + t4 * x2^2, let x2 be y, solver for y
-            //y = +- ...
             lineSeries.add(y, (-1*theta[1]  - Math.sqrt(Math.pow(theta[1], 2) - 4 * theta[3] *(theta[0] + theta[2] * y + theta [4] * Math.pow(y, 2))))/(2*theta[4]));
-            //      0 = t0 + 1 * x1^2 + t2 * x2^2, let x2 be y, solver for y
-            //y = +- ...
-            // y  = Math.sqrt(-1*theta[0]- theta[1] * Math.pow(x, 2)))/Math.sqrt(theta[2], c!=0
-            //lineSeries.add(y, Math.sqrt(-1*theta[0]- theta[1] * Math.pow(y, 2))/Math.sqrt(theta[2]));
             y -= 0.05;
         }
         XYDataset lineDataSet = getLineData(lineSeries);
         XYItemRenderer rendererLine = new XYLineAndShapeRenderer(true, false);   // Lines only
-        ValueAxis xAxisLine = new NumberAxis();
-        ValueAxis yAxisLine = new NumberAxis();
-        xAxisLine.setLowerBound(-1.5);
-        xAxisLine.setUpperBound(1.5);
-        xAxisLine.setAxisLineVisible(false);
-        xAxisLine.setVerticalTickLabels(false);
-        yAxisLine.setLowerBound(-1.5);
-        yAxisLine.setUpperBound(1.5);
-        yAxisLine.setAxisLineVisible(false);
-        yAxisLine.setVerticalTickLabels(false);
 
         // Set the line data, renderer, and axis into plot
         plot.setDataset(2, lineDataSet);
         plot.setRenderer(2, rendererLine);
-        plot.setDomainAxis(2, xAxisLine);
-        plot.setRangeAxis(2, yAxisLine);
 
         // Map the line to the second xAxis and second yAxis
         plot.mapDatasetToDomainAxis(1, 0);
         plot.mapDatasetToDomainAxis(1, 0);
-        plot.mapDatasetToRangeAxis(2, 0);
-        plot.mapDatasetToRangeAxis(2, 0);
 
         // Create the chart with the plot and a legend
         JFreeChart chart = new JFreeChart("Data set - Regularized Logistic Regression", JFreeChart.DEFAULT_TITLE_FONT, plot, true);

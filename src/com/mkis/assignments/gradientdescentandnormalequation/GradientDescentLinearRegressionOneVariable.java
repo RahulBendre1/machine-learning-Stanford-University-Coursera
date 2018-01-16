@@ -29,7 +29,7 @@ public class GradientDescentLinearRegressionOneVariable extends ApplicationFrame
 
     private static String file = "D:\\Projects-repos\\MachineLearning\\src\\com\\mkis\\assignments\\gradientdescentandnormalequation\\data1.txt";
     private static double m; // number of training examples
-    private static int n; // number of features (including x0)
+    private static int n; //number of features (including x0)
     private static int iterations = 0; // number of iterations for gradient descent
     private static double theta[]; // parameters/weights array
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
