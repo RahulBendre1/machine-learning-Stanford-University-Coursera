@@ -48,7 +48,10 @@ public class LogisticRegression extends ApplicationFrame {
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
     private static List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
     private static List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min of each feature
-
+    private static double precision;
+    private static double recall;
+    private static double F1_score;
+    private static NumberFormat nf = new DecimalFormat("##.##");
 
     //For plotting
     private LogisticRegression(final String title) {
@@ -144,8 +147,10 @@ public class LogisticRegression extends ApplicationFrame {
         doGradientDescent(dataSet);
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createCostFunction(dataSet));
         System.out.println("Accuracy of the model: " + calcAccuracyOfModel(dataSet) + " %");
+        System.out.println("Precision of the model: " + nf.format(precision));
+        System.out.println("Recall of the model: " + nf.format(recall));
+        System.out.println("F1-score: " + nf.format(F1_score) + "\n");
 
-        NumberFormat nf = new DecimalFormat("##.##");
         System.out.println("For a student with scores 45 and 85, we predict an admission probability: ");
         System.out.println(nf.format(100 * (createHypothesis(new double[]
                 {1, (45 - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0), (85 - meansOfFeatures.get(1)) / maxMinusMinOfFeatures.get(1)}))) + " %"); //feature scaling
@@ -343,8 +348,8 @@ public class LogisticRegression extends ApplicationFrame {
                 theta[i] = theta[i] - alpha * momentumThetaCorrected[i] / (Math.sqrt(RMSThetaCorrected[i]) + epsilon);
             }
             iterations++;
-            //Cost function to descend, theta after each iteration:
-            System.out.println("Iteration: " + t + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));
+            /*//Cost function to descend, theta after each iteration:
+            System.out.println("Iteration: " + t + " " + Arrays.toString(theta) + ", Cost function: " + createCostFunction(dataSet));*/
             if (costFunctionOld - createCostFunction(dataSet) < 0.001) {
                 System.out.println("Number of iterations: " + iterations);
                 return;
@@ -363,11 +368,20 @@ public class LogisticRegression extends ApplicationFrame {
     //Calculate accuracy of logistic regression
     private static double calcAccuracyOfModel(List<Instance> instances) {
         int counter = 0;
+        double truePositives = 0;
+        double falsePositives = 0;
+        double falseNegatives = 0;
         for (Instance instance : instances) {
             double[] x = instance.xVariables;
             double y = instance.yValue;
+            if (predict(x) == 1 && y == 1) truePositives++;
+            if (predict(x) == 0 && y == 1) falseNegatives++;
+            if (predict(x) == 1 && y == 0) falsePositives++;
             if (predict(x) != y) counter++;
         }
+        precision = truePositives / (truePositives + falsePositives);
+        recall = truePositives / (truePositives + falseNegatives);
+        F1_score = 2 * precision * recall / (precision + recall);
         return (1 - counter / m) * 100;
     }
 
