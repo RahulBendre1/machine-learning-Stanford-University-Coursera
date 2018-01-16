@@ -19,5 +19,6 @@ l.(com.mkis.assignments.gradientdescentandnormalequation)
 4.(com.mkis.assignments.neuralnetwork)
 - Convolutional Neural Network with Feed Forward and Back Propagation
 
-5.(same as 4.)
+5.(same as 4. and 2.)
 - Evaluation: high variance or high bias problem for CNN (visualization with JfreeChart)
+- Evaluation: Precision, recall and F1-score added to logistic regression
