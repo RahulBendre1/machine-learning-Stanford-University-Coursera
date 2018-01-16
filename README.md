@@ -9,7 +9,7 @@ l.(com.mkis.assignments.gradientdescentandnormalequation)
 - Linear Regression with gradient descent with multiple variables and feature scaling (using Apache Commons Math)
 
 2.(com.mkis.assignments.logisticregression)
-- Binary Logistic Regression (linear) with gradient descent applying mean normalization (visualization with JfreeChart)
+- Binary Logistic Regression (linear) with gradient descent applying feature normalization and ADAM optimization (visualization with JfreeChart)
 - Binary Logistic Regression (polynomial) with gradient descent applying regularization and feature mapping (visualization with JfreeChart)
 
 3.(com.mkis.assignments.multiclassclassification)
