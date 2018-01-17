@@ -73,7 +73,7 @@ public class FeedForwardAndBackPropagation {
             test.outputs = test.initialOutput;
             test.derivatives = test.initialDerivatives;
             test.errors = test.initialErrors;
-            test.train(trSet, cvSet, 100, 1, lambda[i]);
+            test.train(trSet, cvSet, 10, 1, lambda[i]);
             //Prediction with no regularization
             if (i == 0) {
                 System.out.println("\nAccuracy tested on the cross-validation set: " + test.calcAccuracyOfModel(cvSet) + " %");
@@ -185,10 +185,15 @@ public class FeedForwardAndBackPropagation {
         return arr;
     }
 
-    //Train
+    //Train with SGD
     private void train(List<LoadData.Instance> trainingSet, List<LoadData.Instance> CVSet, int iterations, double learning_rate, double lambda) {
         this.m = (double) trainingSet.size();
         for (int iteration = 0; iteration < iterations; iteration++) {
+            //Lower learning rate as we approach minimum
+            learning_rate = (double)iterations / ((double)iteration + (double)iterations);
+            if(iteration+1 % 5 == 0){
+                learning_rate = 0.75 * learning_rate; //adjust ration according to model and iterations
+            }
             for (LoadData.Instance instance1 : trainingSet) {
                 double[] x = instance1.inputVariables;
                 double[] y = instance1.classValues;
