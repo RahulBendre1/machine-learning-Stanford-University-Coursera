@@ -25,10 +25,6 @@ import java.util.Random;
  * The network consists of an input layer (400 neurons + the bias), a hidden layer with 200 neurons + the bias and the output layer of the 10 classes(neurons)
  */
 
-/**
- * Special thanks go to Ryan Harris for his perfect explanation of the subject (youtube).
- */
-
 public class FeedForwardAndBackPropagation {
 
     private double[][] outputs; //output of every neuron, indexes: layer, neuron
@@ -192,7 +188,7 @@ public class FeedForwardAndBackPropagation {
             //Lower learning rate as we approach minimum
             learning_rate = (double)iterations / ((double)iteration + (double)iterations);
             if(iteration+1 % 5 == 0){
-                learning_rate = 0.75 * learning_rate; //adjust ration according to model and iterations
+                learning_rate = 0.9 * learning_rate; //adjust ration according to model and iterations
             }
             for (LoadData.Instance instance1 : trainingSet) {
                 double[] x = instance1.inputVariables;
@@ -201,7 +197,7 @@ public class FeedForwardAndBackPropagation {
             }
             if (iteration == iterations - 1) {
                 trainingSetCostFunction.add(createRegularizedCostFunction(trainingSet, lambda));
-                CVSetSetCostFunction.add(createCostFunction(CVSet));
+                CVSetSetCostFunction.add(createRegularizedCostFunction(CVSet, 0));
             }
         }
     }
@@ -243,22 +239,6 @@ public class FeedForwardAndBackPropagation {
             }
         }
         return (-1 * cost / m) + regSum * lambda / (2 * m);
-    }
-
-    //Create cost function (not regularized) for CV set for evaluation
-    private double createCostFunction(List<LoadData.Instance> instances) {
-        double cost = 0.0;
-        for (LoadData.Instance instance : instances) {
-            double[] x = instance.inputVariables;
-            double[] y = instance.classValues;
-            double classSum = 0.0;
-            for (int classNumber = 0; classNumber < y.length; classNumber++) {
-                if (feedForward(x)[classNumber] == 0 || feedForward(x)[classNumber] == 1) continue; //avoiding NaN
-                classSum += y[classNumber] * Math.log(feedForward(x)[classNumber]) + (1 - y[classNumber]) * Math.log(1 - feedForward(x)[classNumber]); //not regularized
-            }
-            cost += classSum;
-        }
-        return -1 * cost / (double) instances.size();
     }
 
     //Back propagation starting from the output layer's target(s)
