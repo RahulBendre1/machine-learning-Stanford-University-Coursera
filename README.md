@@ -1,6 +1,6 @@
 # MachineLearning
 
-Stanford University's (Coursera) Machine Learning course weekly assigments implemented in java (originally coded in Octave).
+Stanford University's (Coursera) Machine Learning course weekly assigments (and some extra) implemented in java (originally coded in Octave).
 Visualization added where it was possible. Task texts included in the java files.
 All class (java) files have main function so you only need to download the one you are interested in plus the library/ies it uses (below).
 
@@ -17,7 +17,7 @@ l.(com.mkis.assignments.gradientdescentandnormalequation)
 - Naive Bayes algorithm used on the same task (using WEKA API)
 
 4.(com.mkis.assignments.neuralnetwork)
-- Convolutional Neural Network with Feed Forward and Back Propagation
+- Convolutional Neural Network with Feed Forward and Back Propagation with SGD (adaptive learning rate)
 
 5.(same as 4. and 2.)
 - Evaluation: high variance or high bias problem for CNN (visualization with JfreeChart)
