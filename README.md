@@ -22,3 +22,6 @@ l.(com.mkis.assignments.gradientdescentandnormalequation)
 5.(same as 4. and 2.)
 - Evaluation: high variance or high bias problem for CNN (visualization with JfreeChart)
 - Evaluation: Precision, recall and F1-score added to logistic regression
+
+6.(com.mkis.assignments.supportvectormachines)
+- Linear SVM (visualization with JfreeChart)
