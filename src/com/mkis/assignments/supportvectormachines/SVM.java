@@ -33,10 +33,6 @@ public class SVM extends ApplicationFrame {
     private static List<Instance> dataSet = new ArrayList<>(); //list containing 1 row of training example
     private static List<Double> meansOfFeatures = new ArrayList<>(); //list containing the means of each feature
     private static List<Double> maxMinusMinOfFeatures = new ArrayList<>(); //list containing max-min of each feature
-    private static double precision;
-    private static double recall;
-    private static double F1_score;
-    private static NumberFormat nf = new DecimalFormat("##.##");
 
     //For plotting
     private SVM(final String title) {
@@ -117,10 +113,6 @@ public class SVM extends ApplicationFrame {
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
         doGradientDescent(dataSet);
         System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
-        System.out.println("Accuracy of the model: " + calcAccuracyOfModel(dataSet) + " %");
-        System.out.println("Precision of the model: " + nf.format(precision));
-        System.out.println("Recall of the model: " + nf.format(recall));
-        System.out.println("F1-score: " + nf.format(F1_score) + "\n");
 
         SVM visualizationOfData = new SVM("Visualization of data");
         visualizationOfData.pack();
@@ -280,32 +272,6 @@ public class SVM extends ApplicationFrame {
             }
             //System.out.println(createLossFunction(dataSet));
         }
-    }
-
-    //Predict whether the label is -1 or 1 using
-    private static double predict(double[] scores) {
-        if (createHypothesis(scores) >= 0.5) return 1;
-        return -1;
-    }
-
-    //Calculate accuracy, precision, recall and F1-score
-    private static double calcAccuracyOfModel(List<Instance> instances) {
-        int counter = 0;
-        double truePositives = 0;
-        double falsePositives = 0;
-        double falseNegatives = 0;
-        for (Instance instance : instances) {
-            double[] x = instance.xVariables;
-            double y = instance.yValue;
-            if (predict(x) == 1 && y == 1) truePositives++;
-            if (predict(x) == -1 && y == 1) falseNegatives++;
-            if (predict(x) == 1 && y == -1) falsePositives++;
-            if (predict(x) != y) counter++;
-        }
-        precision = truePositives / (truePositives + falsePositives);
-        recall = truePositives / (truePositives + falseNegatives);
-        F1_score = 2 * precision * recall / (precision + recall);
-        return (1 - counter / m) * 100;
     }
 
 }
