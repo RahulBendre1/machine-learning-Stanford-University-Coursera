@@ -47,8 +47,8 @@ public class SVM extends ApplicationFrame {
         XYSeries seriesEx1 = new XYSeries("1");
         for (int i = 0; i < dataSet.size(); i++) {
             if (dataSet.get(i).yValue == 1)
-                seriesEx1.add(dataSet.get(i).xVariables[0] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
-                        dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
+                seriesEx1.add(dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
+                        dataSet.get(i).xVariables[2] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
         }
         XYDataset dataSetVisEx1 = getData(seriesEx1);
         XYItemRenderer rendererDataEx1 = new XYLineAndShapeRenderer(false, true);
@@ -71,8 +71,8 @@ public class SVM extends ApplicationFrame {
         XYSeries seriesEx2 = new XYSeries("2");
         for (int i = 0; i < dataSet.size(); i++) {
             if (dataSet.get(i).yValue == -1)
-                seriesEx2.add(dataSet.get(i).xVariables[0] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
-                        dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
+                seriesEx2.add(dataSet.get(i).xVariables[1] * maxMinusMinOfFeatures.get(0) + meansOfFeatures.get(0),
+                        dataSet.get(i).xVariables[2] * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
         }
         XYDataset dataSetVisEx2 = getData(seriesEx2);
         XYItemRenderer rendererDataEx2 = new XYLineAndShapeRenderer(false, true);
@@ -87,7 +87,7 @@ public class SVM extends ApplicationFrame {
         double x = 0.0;
         while (x <= 5) {
             lineSeries.add(x,
-                    ((theta[0] * ((x - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0))) / (-1 * theta[1])) * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
+                    ((theta[0] + theta[1] * ((x - meansOfFeatures.get(0)) / maxMinusMinOfFeatures.get(0))) / (-1 * theta[2])) * maxMinusMinOfFeatures.get(1) + meansOfFeatures.get(1)); //feature scaling
             x += 0.05;
         }
         XYDataset lineDataSet = getLineData(lineSeries);
@@ -110,9 +110,9 @@ public class SVM extends ApplicationFrame {
         getNumberOfFeaturesAndTrainingExamples();
         loadData();
         init();
-        System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
+        System.out.println("Hinge loss at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
         doGradientDescent(dataSet);
-        System.out.println("Cost Function at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
+        System.out.println("Hinge loss at theta: " + Arrays.toString(theta) + " : " + createLossFunction(dataSet));
 
         SVM visualizationOfData = new SVM("Visualization of data");
         visualizationOfData.pack();
@@ -193,13 +193,14 @@ public class SVM extends ApplicationFrame {
                 if (Double.parseDouble(columns[n - 1]) == 0) {
                     y = -1d;
                 } else {
-                    y = 1;
+                    y = 1d;
                 }
-                double xArray[] = new double[n - 1];
-                for (int i = 0; i < n - 1; i++) {
-                    xArray[i] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i); // feature scaling applied, to get variables between 0 and 1
+                double xArray[] = new double[n];
+                xArray[0] = 1;
+                for (int i = 0; i < n-1; i++) {
+                    xArray[i+1] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i); // feature scaling applied, to get variables between 0 and 1
                 }
-                //System.out.println(xArray[0] + " | " + xArray[1] + " | " + y );
+                //System.out.println(xArray[0] + " | " + xArray[1] + " | " + xArray[2] + " | " + y);
                 Instance instance = new Instance(y, xArray);
                 dataSet.add(instance);
             }
@@ -210,11 +211,12 @@ public class SVM extends ApplicationFrame {
         }
     }
 
-    //Initialize theta with zeros
+    //Random initialize theta
     private static void init() {
-        theta = new double[n - 1];
-        for (int i = 0; i < n - 1; i++) {
-            theta[i] = 0.0;
+        theta = new double[n];
+        Random random = new Random();
+        for (int i = 0; i < n; i++) {
+            theta[i] = (double) random.nextInt(100) / 100;
         }
     }
 
@@ -227,34 +229,29 @@ public class SVM extends ApplicationFrame {
             if (y * createHypothesis(x) >= 1) {
                 cost += 0;
             } else {
-                cost += 1 - y * createHypothesis(x);
+                cost += - y * createHypothesis(x);
             }
         }
         //System.out.println("Cost function value with theta " + Arrays.toString(theta) + ": " + J);
         return cost;
     }
 
-    //Sigmoid function
-    private static double sigmoid(double z) {
-        return 1.0 / (1.0 + Math.exp(-z));
-    }
-
     //Creating our hypothesis (h(x))
     private static double createHypothesis(double[] x) {
         double hypothesis = 0.0;
-        for (int i = 0; i < n - 1; i++) {
+        for (int i = 0; i < n; i++) {
             hypothesis += theta[i] * x[i];
         }
-        return sigmoid(hypothesis);
+        return hypothesis;
     }
 
     //Do gradient descent
     private static void doGradientDescent(List<Instance> instances) {
-        double alpha = 0.5; //learning rate
-        double C = 1; //reg. term
-        for (int it = 1; it < 100; it++) {
-            double[] temp = new double[n - 1];
-            for (int i = 0; i < n - 1; i++) {
+        double alpha = 0.01; //learning rate
+        double C = 100; //reg. term, higher - better fit the dataset, lower - more general
+        for (int it = 1; it < 10000; it++) {
+            double[] temp = new double[n];
+            for (int i = 0; i < n; i++) {
                 temp[i] = 0.0;
             }
             for (Instance instance : instances) {
@@ -262,15 +259,17 @@ public class SVM extends ApplicationFrame {
                 double hypothesis = createHypothesis(x);
                 double y = instance.yValue;
                 if (y * hypothesis < 1) {
-                    for (int i = 0; i < n - 1; i++) {
-                        temp[i] += x[i] * y;
+                    for (int i = 0; i < n; i++) {
+                        temp[i] +=  x[i] * y;
                     }
                 }
             }
-            for (int i = 0; i < n - 1; i++) {
+            for (int i = 0; i < n; i++) {
                 theta[i] = (1 - alpha) * theta[i] + C * temp[i];
             }
-            //System.out.println(createLossFunction(dataSet));
+            //Stop when |hinge loss| < 0.1
+            if (Math.abs(createLossFunction(dataSet)) < 0.1) return;
+            //System.out.println("Iteration: " + it + " Loss: " + createLossFunction(dataSet));
         }
     }
 
