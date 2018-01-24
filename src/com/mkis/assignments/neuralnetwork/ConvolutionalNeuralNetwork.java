@@ -64,11 +64,9 @@ public class ConvolutionalNeuralNetwork {
         //So the initial weights and biases are the same for all lambdas
         double initialBiases[][] = new double[test.NETWORK_SIZE][];
         double initialWeights[][][] = new double[test.NETWORK_SIZE][][];
-        for (int k = 0; k < test.NETWORK_SIZE; k++) {
+        for (int k = 1; k < test.NETWORK_SIZE; k++) {
             initialBiases[k] = test.biases[k];
-            if (k > 0) {
-                initialWeights[k] = test.weights[k];
-            }
+            initialWeights[k] = test.weights[k];
         }
 
         for (int i = 0; i < lambda.length; i++) {
