@@ -129,13 +129,13 @@ public class ConvolutionalNeuralNetwork {
         this.derivatives = new double[NETWORK_SIZE][];
 
         for (int i = 0; i < NETWORK_SIZE; i++) {
-            this.biases[i] = initWeights(NETWORK_LAYER_SIZES[i]);
-            this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
             this.outputs[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.errors[i] = new double[NETWORK_LAYER_SIZES[i]];
             this.derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
 
             if (i > 0) {
+                this.biases[i] = initWeights(NETWORK_LAYER_SIZES[i]);
+                this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
                 this.weights[i] = initWeights(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
                 this.DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
             }
@@ -162,19 +162,19 @@ public class ConvolutionalNeuralNetwork {
     }
 
     //Initialize weights:
-    private double[][] initWeights(int size, int sizeNext) {
-        double[][] arr = new double[size][sizeNext];
+    private double[][] initWeights(int size, int sizePrev) {
+        double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
-            arr[i] = initWeights(sizeNext);
+            arr[i] = initWeights(sizePrev);
         }
         return arr;
     }
 
     //Set values to zero:
-    private double[][] setValuesToZero(int size, int sizeNext) {
-        double[][] arr = new double[size][sizeNext];
+    private double[][] setValuesToZero(int size, int sizePrev) {
+        double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
-            arr[i] = setValuesToZero(sizeNext);
+            arr[i] = setValuesToZero(sizePrev);
         }
         return arr;
     }

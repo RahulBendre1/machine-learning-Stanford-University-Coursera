@@ -53,8 +53,8 @@ public class SVM extends ApplicationFrame {
         XYDataset dataSetVisEx1 = getData(seriesEx1);
         XYItemRenderer rendererDataEx1 = new XYLineAndShapeRenderer(false, true);
         rendererDataEx1.setBasePaint(Color.GREEN);
-        ValueAxis xAxisDataEx1 = new NumberAxis("Exam 1 score");
-        ValueAxis yAxisDataEx1 = new NumberAxis("Exam 2 score");
+        ValueAxis xAxisDataEx1 = new NumberAxis();
+        ValueAxis yAxisDataEx1 = new NumberAxis();
         xAxisDataEx1.setLowerBound(0);
         xAxisDataEx1.setUpperBound(5);
         yAxisDataEx1.setLowerBound(1.2);
@@ -197,8 +197,8 @@ public class SVM extends ApplicationFrame {
                 }
                 double xArray[] = new double[n];
                 xArray[0] = 1;
-                for (int i = 0; i < n-1; i++) {
-                    xArray[i+1] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i); // feature scaling applied, to get variables between 0 and 1
+                for (int i = 0; i < n - 1; i++) {
+                    xArray[i + 1] = (Double.parseDouble(columns[i]) - meansOfFeatures.get(i)) / maxMinusMinOfFeatures.get(i); // feature scaling applied, to get variables between 0 and 1
                 }
                 //System.out.println(xArray[0] + " | " + xArray[1] + " | " + xArray[2] + " | " + y);
                 Instance instance = new Instance(y, xArray);
@@ -229,7 +229,7 @@ public class SVM extends ApplicationFrame {
             if (y * createHypothesis(x) >= 1) {
                 cost += 0;
             } else {
-                cost += - y * createHypothesis(x);
+                cost += -y * createHypothesis(x);
             }
         }
         //System.out.println("Cost function value with theta " + Arrays.toString(theta) + ": " + J);
@@ -260,7 +260,7 @@ public class SVM extends ApplicationFrame {
                 double y = instance.yValue;
                 if (y * hypothesis < 1) {
                     for (int i = 0; i < n; i++) {
-                        temp[i] +=  x[i] * y;
+                        temp[i] += x[i] * y;
                     }
                 }
             }
