@@ -75,12 +75,12 @@ public class ConvolutionalNeuralNetwork {
             System.out.println("\n--------------------------------------------------------------");
             System.out.println("\nTraining for lambda (" + lambda[i] + ")...");
             for (int j = 0; j < test.NETWORK_SIZE; j++) {
-                test.biases[j] = initialBiases[j];
                 test.outputs[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
                 test.derivatives[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
                 test.errors[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
-                test.DELTAbiases[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
                 if (j > 0) {
+                    test.biases[j] = initialBiases[j];
+                    test.DELTAbiases[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
                     test.weights[j] = initialWeights[j];
                     test.DELTAweights[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], test.NETWORK_LAYER_SIZES[j - 1]);
                 }
