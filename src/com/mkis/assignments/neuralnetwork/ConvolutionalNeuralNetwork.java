@@ -280,7 +280,7 @@ public class ConvolutionalNeuralNetwork {
 
     //First hidden layer to the output layer, 1 iteration, updating the Deltas of biases and the weights
     private void updateDeltas() {
-        for (int layer = 1; layer < NETWORK_SIZE; layer++) {
+        for (int layer = NETWORK_SIZE - 1; layer > 0; layer--) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 this.DELTAbiases[layer][neuron] += errors[layer][neuron];
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
