@@ -84,7 +84,7 @@ public class ConvolutionalNeuralNetwork {
                 }
             }
             //Set batch size to 1 to get stochastic gradient descent (SGD), set it equal to training set size to get batch gradient descent
-            test.train(trSet, cvSet, 10, 10, 1, lambda[i]);
+            test.train(trSet, cvSet, 50, 10, 1, lambda[i]);
             //Prediction with no regularization
             if (i == 0) {
                 System.out.println("\nAccuracy tested on the cross-validation set: " + test.calcAccuracyOfModel(cvSet) + " %");
@@ -216,6 +216,7 @@ public class ConvolutionalNeuralNetwork {
     //Feed forward, back prop and calculate TriDelta terms
     private void prepare(double[] input, double[] target) {
         feedForward(input);
+        calculateDerivatives();
         backPropError(target);
         updateDeltas();
     }
@@ -234,12 +235,20 @@ public class ConvolutionalNeuralNetwork {
                 }
                 //activation of this neuron:
                 this.outputs[layer][neuron] = sigmoid(sum);
-                //derivative term of sigmoid of this neuron:
-                this.derivatives[layer][neuron] = (this.outputs[layer][neuron] * (1 - this.outputs[layer][neuron]));
             }
         }
         //Output of the network at the last layer
         return outputs[NETWORK_SIZE - 1];
+    }
+
+    //Calculate derivative terms of activations
+    private void calculateDerivatives() {
+        for (int layer = 1; layer < NETWORK_SIZE; layer++) {
+            for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
+                //derivative term of sigmoid of this neuron:
+                this.derivatives[layer][neuron] = (this.outputs[layer][neuron] * (1 - this.outputs[layer][neuron]));
+            }
+        }
     }
 
     //Sigmoid function:
@@ -281,7 +290,7 @@ public class ConvolutionalNeuralNetwork {
         }
     }
 
-    //First hidden layer to the output layer, 1 iteration, updating the biases and the weights using the partial derivatives
+    //First hidden layer to the output layer, 1 iteration, updating the biases and the weights using the partial derivatives/gradients
     private void updateWeights(double learning_rate, double batch_size, double lambda) {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
@@ -304,11 +313,11 @@ public class ConvolutionalNeuralNetwork {
             double classSum = 0.0;
             for (int classNumber = 0; classNumber < y.length; classNumber++) {
                 if (feedForward(x)[classNumber] == 0 || feedForward(x)[classNumber] == 1) continue; //avoiding NaN
-                classSum += y[classNumber] * Math.log(feedForward(x)[classNumber]) + (1 - y[classNumber]) * Math.log(1 - feedForward(x)[classNumber]); //regularized
+                classSum += y[classNumber] * Math.log(feedForward(x)[classNumber]);
             }
             cost += classSum;
         }
-        /*//The weights:
+        /*//Checking weights:
         for(int i= 1; i < weights.length; i++) {
             for (int j = 0; j < weights[i].length; j++) {
                 for(int z = 0; z < weights[i][j].length; z++) {
