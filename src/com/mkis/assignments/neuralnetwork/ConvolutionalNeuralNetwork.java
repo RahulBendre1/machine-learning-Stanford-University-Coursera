@@ -140,12 +140,15 @@ public class ConvolutionalNeuralNetwork {
         }
     }
 
-    //Initialize biases/weights:
+    //Initialize biases/weights (sigmoid):
     private double[] initWeights(int size) {
         double[] arr = new double[size];
+        double N = NETWORK_LAYER_SIZES[0];
+        double v_square = 12.96 / N;
+        double bound = v_square * 10000;
         Random random = new Random();
         for (int i = 0; i < size; i++) {
-            arr[i] = (double) random.nextInt(100) / 100;
+            arr[i] = (double) random.nextInt((int)bound) / 10000;
         }
         return arr;
     }
