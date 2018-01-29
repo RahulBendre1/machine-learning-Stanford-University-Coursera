@@ -132,25 +132,12 @@ public class ConvolutionalNeuralNetwork {
             this.derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
 
             if (i > 0) {
-                this.biases[i] = initWeights(NETWORK_LAYER_SIZES[i]);
+                this.biases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
                 this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
-                this.weights[i] = initWeights(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
+                this.weights[i] = initWeights(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1], i);
                 this.DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
             }
         }
-    }
-
-    //Initialize biases/weights (sigmoid):
-    private double[] initWeights(int size) {
-        double[] arr = new double[size];
-        double N = NETWORK_LAYER_SIZES[0];
-        double v_square = 12.96 / N;
-        double bound = v_square * 10000;
-        Random random = new Random();
-        for (int i = 0; i < size; i++) {
-            arr[i] = (double) random.nextInt((int)bound) / 10000;
-        }
-        return arr;
     }
 
     //Set values to zero:
@@ -162,11 +149,17 @@ public class ConvolutionalNeuralNetwork {
         return arr;
     }
 
-    //Initialize weights:
-    private double[][] initWeights(int size, int sizePrev) {
+    //Initialize weights (sigmoid):
+    private double[][] initWeights(int size, int sizePrev, int layer) {
+        Random random = new Random();
+        double N = NETWORK_LAYER_SIZES[layer-1];
+        double v_square = 12.96 / N;
+        double bound = v_square * 1000000;
         double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
-            arr[i] = initWeights(sizePrev);
+            for (int j = 0; j < size; j++) {
+                arr[i][j] = (double) random.nextInt((int)bound) / 1000000;
+            }
         }
         return arr;
     }
@@ -186,12 +179,11 @@ public class ConvolutionalNeuralNetwork {
         if (batch_size > m) batch_size = (int) m;
         int numberOfBatches = (int) (m / batch_size);
         for (int iteration = 0; iteration < iterations; iteration++) {
-            /*System.out.println("iteration: " + iteration + ", iterations: " + iterations);
             learning_rate = (double)iterations / ((double)iteration + (double)iterations);
-            System.out.println("alpha: "+learning_rate);
-            if(iteration % 10 == 0){
+            /*if(iteration % 10 == 0){
                 learning_rate = 0.75 * learning_rate;
-            }*/
+            }
+            System.out.println("alpha: "+learning_rate);*/
             int counter = 0;
             for (int batch = 0; batch < numberOfBatches; batch++) {
                 for (int i = 0; i < NETWORK_SIZE; i++) {
