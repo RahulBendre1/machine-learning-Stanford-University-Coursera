@@ -73,12 +73,12 @@ public class ConvolutionalNeuralNetwork {
             System.out.println("\n--------------------------------------------------------------");
             System.out.println("\nTraining for lambda (" + lambda[i] + ")...");
             for (int j = 0; j < test.NETWORK_SIZE; j++) {
-                test.outputs[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
-                test.derivatives[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
-                test.errors[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
+                test.outputs[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], false);
+                test.derivatives[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], false);
+                test.errors[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], false);
                 if (j > 0) {
                     test.biases[j] = initialBiases[j];
-                    test.DELTAbiases[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j]);
+                    test.DELTAbiases[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], false);
                     test.weights[j] = initialWeights[j];
                     test.DELTAweights[j] = test.setValuesToZero(test.NETWORK_LAYER_SIZES[j], test.NETWORK_LAYER_SIZES[j - 1]);
                 }
@@ -132,19 +132,23 @@ public class ConvolutionalNeuralNetwork {
             this.derivatives[i] = new double[NETWORK_LAYER_SIZES[i]];
 
             if (i > 0) {
-                this.biases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
-                this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
+                this.biases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], true);
+                this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], false);
                 this.weights[i] = initWeights(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1], i);
                 this.DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
             }
         }
     }
 
-    //Set values to zero:
-    private double[] setValuesToZero(int size) {
+    //Set values to zero and initialize the biases with 1s:
+    private double[] setValuesToZero(int size, boolean bias) {
         double[] arr = new double[size];
         for (int i = 0; i < size; i++) {
-            arr[i] = 0;
+            if(bias) {
+                arr[i] = 1;
+            }else {
+                arr[i] = 0;
+            }
         }
         return arr;
     }
@@ -157,7 +161,7 @@ public class ConvolutionalNeuralNetwork {
         double bound = v_square * 1000000;
         double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+            for (int j = 0; j < sizePrev; j++) {
                 arr[i][j] = (double) random.nextInt((int)bound) / 1000000;
             }
         }
@@ -168,7 +172,7 @@ public class ConvolutionalNeuralNetwork {
     private double[][] setValuesToZero(int size, int sizePrev) {
         double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
-            arr[i] = setValuesToZero(sizePrev);
+            arr[i] = setValuesToZero(sizePrev, false);
         }
         return arr;
     }
@@ -187,7 +191,7 @@ public class ConvolutionalNeuralNetwork {
             int counter = 0;
             for (int batch = 0; batch < numberOfBatches; batch++) {
                 for (int i = 0; i < NETWORK_SIZE; i++) {
-                    this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i]);
+                    this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], false);
                     if (i > 0) {
                         this.DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
                     }
