@@ -36,7 +36,7 @@ public class ConvolutionalNeuralNetwork {
     private double[][] biases; //bias weights
     private double[][] DELTAbiases; //Tri-delta biases (to compute partial derivatives of  the biases)
     private double[][] errors; //error of every neuron, indexes: layer, neuron
-    private double[][] derivatives; //derivatives of every neuron, indexes: layer, neuron
+    private double[][] derivatives; //derivatives of activations, indexes: layer, neuron
 
     private double m; //number of training examples
 
@@ -144,9 +144,9 @@ public class ConvolutionalNeuralNetwork {
     private double[] setValuesToZero(int size, boolean bias) {
         double[] arr = new double[size];
         for (int i = 0; i < size; i++) {
-            if(bias) {
+            if (bias) {
                 arr[i] = 1;
-            }else {
+            } else {
                 arr[i] = 0;
             }
         }
@@ -156,13 +156,13 @@ public class ConvolutionalNeuralNetwork {
     //Initialize weights (sigmoid):
     private double[][] initWeights(int size, int sizePrev, int layer) {
         Random random = new Random();
-        double N = NETWORK_LAYER_SIZES[layer-1];
+        double N = NETWORK_LAYER_SIZES[layer - 1];
         double v_square = 12.96 / N;
         double bound = v_square * 1000000;
         double[][] arr = new double[size][sizePrev];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < sizePrev; j++) {
-                arr[i][j] = (double) random.nextInt((int)bound) / 1000000;
+                arr[i][j] = (double) random.nextInt((int) bound) / 1000000;
             }
         }
         return arr;
@@ -183,7 +183,7 @@ public class ConvolutionalNeuralNetwork {
         if (batch_size > m) batch_size = (int) m;
         int numberOfBatches = (int) (m / batch_size);
         for (int iteration = 0; iteration < iterations; iteration++) {
-            learning_rate = (double)iterations / ((double)iteration + (double)iterations);
+            learning_rate = (double) iterations / ((double) iteration + (double) iterations);
             /*if(iteration % 10 == 0){
                 learning_rate = 0.75 * learning_rate;
             }
@@ -191,15 +191,15 @@ public class ConvolutionalNeuralNetwork {
             int counter = 0;
             for (int batch = 0; batch < numberOfBatches; batch++) {
                 for (int i = 0; i < NETWORK_SIZE; i++) {
-                    this.DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], false);
+                    DELTAbiases[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], false);
                     if (i > 0) {
-                        this.DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
+                        DELTAweights[i] = setValuesToZero(NETWORK_LAYER_SIZES[i], NETWORK_LAYER_SIZES[i - 1]);
                     }
                 }
                 for (int b = counter; b < counter + batch_size; b++) {
                     double[] x = trainingSet.get(b).inputVariables;
                     double[] y = trainingSet.get(b).classValues;
-                    this.prepare(x, y);
+                    prepare(x, y);
                 }
                 updateWeights(learning_rate, batch_size, lambda);
                 counter += batch_size;
@@ -223,17 +223,17 @@ public class ConvolutionalNeuralNetwork {
     //Feed forward method to return the outputs/activations for each neuron, input is the input variables in the dataset
     private double[] feedForward(double... input) {
         //Output of the input layer is the array of the input variables:
-        this.outputs[0] = input;
+        outputs[0] = input;
         //Iterate through all the other (layers's) neurons to get the activations for every one of them:
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
-                double sum = this.biases[layer][neuron]; //init with the bias weight
+                double sum = biases[layer][neuron]; //init with the bias weight
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
                     //sum(activation in the previous layers's neurons * weights of the previous layers
-                    sum += this.outputs[layer - 1][prevNeuron] * this.weights[layer][neuron][prevNeuron];
+                    sum += outputs[layer - 1][prevNeuron] * weights[layer][neuron][prevNeuron];
                 }
                 //activation of this neuron:
-                this.outputs[layer][neuron] = sigmoid(sum);
+                outputs[layer][neuron] = sigmoid(sum);
             }
         }
         //Output of the network at the last layer
@@ -245,7 +245,7 @@ public class ConvolutionalNeuralNetwork {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 //derivative term of sigmoid of this neuron:
-                this.derivatives[layer][neuron] = (this.outputs[layer][neuron] * (1 - this.outputs[layer][neuron]));
+                derivatives[layer][neuron] = (outputs[layer][neuron] * (1 - outputs[layer][neuron]));
             }
         }
     }
@@ -260,7 +260,7 @@ public class ConvolutionalNeuralNetwork {
         //Error's of output neurons:
         for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[NETWORK_SIZE - 1]; neuron++) {
             //this.errors[NETWORK_SIZE - 1][neuron] = (outputs[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron]; WRONG!
-            this.errors[NETWORK_SIZE - 1][neuron] = outputs[NETWORK_SIZE - 1][neuron] - target[neuron];
+            errors[NETWORK_SIZE - 1][neuron] = outputs[NETWORK_SIZE - 1][neuron] - target[neuron];
             //System.out.println("target of neuron["+neuron+"]: " + target[neuron]);
             //System.out.println("output error of last layer, neuron["+neuron+"]: " + this.errors[NETWORK_SIZE - 1][neuron]);
         }
@@ -272,7 +272,7 @@ public class ConvolutionalNeuralNetwork {
                     //sum of the: previous (+1) layer's error times the weights going to that neuron from the current neuron
                     sum += weights[layer + 1][nextNeuron][neuron] * errors[layer + 1][nextNeuron];
                 }
-                this.errors[layer][neuron] = sum * derivatives[layer][neuron];
+                errors[layer][neuron] = sum * derivatives[layer][neuron];
             }
         }
     }
@@ -281,9 +281,9 @@ public class ConvolutionalNeuralNetwork {
     private void updateDeltas() {
         for (int layer = NETWORK_SIZE - 1; layer > 0; layer--) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
-                this.DELTAbiases[layer][neuron] += errors[layer][neuron];
+                DELTAbiases[layer][neuron] += errors[layer][neuron];
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    this.DELTAweights[layer][neuron][prevNeuron] += outputs[layer - 1][prevNeuron] * errors[layer][neuron];
+                    DELTAweights[layer][neuron][prevNeuron] += outputs[layer - 1][prevNeuron] * errors[layer][neuron];
                 }
             }
         }
@@ -294,10 +294,10 @@ public class ConvolutionalNeuralNetwork {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 //for the biases:
-                this.biases[layer][neuron] -= learning_rate * DELTAbiases[layer][neuron] / batch_size;
+                biases[layer][neuron] -= learning_rate * DELTAbiases[layer][neuron] / batch_size;
                 //for the rest:
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    this.weights[layer][neuron][prevNeuron] -= learning_rate * (DELTAweights[layer][neuron][prevNeuron] / batch_size + lambda * weights[layer][neuron][prevNeuron]); //reg. term included
+                    weights[layer][neuron][prevNeuron] -= learning_rate * (DELTAweights[layer][neuron][prevNeuron] / batch_size + lambda * weights[layer][neuron][prevNeuron]); //reg. term included
                 }
             }
         }
@@ -328,7 +328,7 @@ public class ConvolutionalNeuralNetwork {
         for (int layer = 1; layer < NETWORK_SIZE; layer++) {
             for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[layer]; neuron++) {
                 for (int prevNeuron = 0; prevNeuron < NETWORK_LAYER_SIZES[layer - 1]; prevNeuron++) {
-                    regSum += Math.pow(this.weights[layer][neuron][prevNeuron], 2);
+                    regSum += Math.pow(weights[layer][neuron][prevNeuron], 2);
                 }
             }
         }
