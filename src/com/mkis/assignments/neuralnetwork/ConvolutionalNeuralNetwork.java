@@ -259,10 +259,7 @@ public class ConvolutionalNeuralNetwork {
     private void backPropError(double[] target) {
         //Error's of output neurons:
         for (int neuron = 0; neuron < NETWORK_LAYER_SIZES[NETWORK_SIZE - 1]; neuron++) {
-            //this.errors[NETWORK_SIZE - 1][neuron] = (outputs[NETWORK_SIZE - 1][neuron] - target[neuron]) * derivatives[NETWORK_SIZE - 1][neuron]; WRONG!
             errors[NETWORK_SIZE - 1][neuron] = outputs[NETWORK_SIZE - 1][neuron] - target[neuron];
-            //System.out.println("target of neuron["+neuron+"]: " + target[neuron]);
-            //System.out.println("output error of last layer, neuron["+neuron+"]: " + this.errors[NETWORK_SIZE - 1][neuron]);
         }
         //Hidden layer errors (From last hidden layer to the first), first/input layer does not have errors ofc
         for (int layer = NETWORK_SIZE - 2; layer > 0; layer--) {
