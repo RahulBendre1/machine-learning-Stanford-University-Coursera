@@ -71,30 +71,17 @@ public class LoadData {
         BufferedReader bufferedReader = new BufferedReader(reader);
         String line;
         String[] columns;
-        double[] classValue = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         while ((line = bufferedReader.readLine()) != null) {
             columns = line.split(",");
             double y = Double.parseDouble(columns[n - 1]);
-            if (y == 10) {
-                classValue = new double[]{1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-            } else if (y == 1) {
-                classValue = new double[]{0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
-            } else if (y == 2) {
-                classValue = new double[]{0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
-            } else if (y == 3) {
-                classValue = new double[]{0, 0, 0, 1, 0, 0, 0, 0, 0, 0};
-            } else if (y == 4) {
-                classValue = new double[]{0, 0, 0, 0, 1, 0, 0, 0, 0, 0};
-            } else if (y == 5) {
-                classValue = new double[]{0, 0, 0, 0, 0, 1, 0, 0, 0, 0};
-            } else if (y == 6) {
-                classValue = new double[]{0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
-            } else if (y == 7) {
-                classValue = new double[]{0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
-            } else if (y == 8) {
-                classValue = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
-            } else if (y == 9) {
-                classValue = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+            double[] classValue = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            if (y == 10d) y = 0d;
+            for (int i = 0; i < 10; i++) {
+                if (y == i) {
+                    classValue[i] = 1;
+                } else {
+                    classValue[i] = 0;
+                }
             }
             double xArray[] = new double[n - 1];
             for (int i = 0; i < n - 1; i++) {
@@ -125,12 +112,12 @@ public class LoadData {
         bufferedReader.close();
         reader.close();
         Collections.shuffle(dataSet, new Random());
-        groupRandomizedDataSet(dataSet, trainingSetRatio/100);
+        groupRandomizedDataSet(dataSet, trainingSetRatio / 100);
     }
 
     //Create training, cross-validation and test set
     private void groupRandomizedDataSet(List<Instance> data, double ratio) {
-        int sizeTraining = (int)((double)data.size() * ratio);
+        int sizeTraining = (int) ((double) data.size() * ratio);
         int sizeCrossValidation = (data.size() - sizeTraining) / 2;
         for (int i = 0; i < data.size(); i++) {
             if (i < sizeTraining) trainingSet.add(data.get(i));
@@ -140,13 +127,15 @@ public class LoadData {
     }
 
     //Getters the different type of sets:
-    public List<Instance> getTrainingSet(){
+    public List<Instance> getTrainingSet() {
         return trainingSet;
     }
-    public List<Instance> getCrossValidationSet(){
+
+    public List<Instance> getCrossValidationSet() {
         return crossValidationSet;
     }
-    public List<Instance> getTestSet(){
+
+    public List<Instance> getTestSet() {
         return testSet;
     }
 
